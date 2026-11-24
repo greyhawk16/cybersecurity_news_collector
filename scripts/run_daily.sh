@@ -1,11 +1,11 @@
 #!/bin/zsh
-# launchd가 매일 07:30에 실행. 전날 보안 뉴스 브리핑을 생성·발송한다.
+# Run by launchd every day at 07:30. Builds and sends the previous day's security news briefing.
 set -u
 
-# 프로젝트 경로: 이 스크립트 위치(scripts/)의 상위 폴더
+# Project path: the parent folder of this script's location (scripts/)
 PROJECT_DIR="${0:A:h:h}"
 
-# launchd는 PATH가 거의 비어 있으므로 claude가 설치되는 일반적인 위치를 추가
+# launchd's PATH is nearly empty, so add the usual locations where claude is installed
 export PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude)}"
 

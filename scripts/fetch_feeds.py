@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""config/sources.yaml의 각 사이트 RSS에서 TARGET 날짜(KST) 기사만 골라 JSON으로 출력한다.
+"""Print, as JSON, only the articles published on the TARGET date (KST) from each site's RSS feed in config/sources.yaml.
 
-사용법: python3 scripts/fetch_feeds.py [YYYY-MM-DD]   (생략 시 KST 기준 어제)
-출력:   {"target": ..., "sources": [{"name", "ok", "error", "items": [{title, url, published_kst, description}]}]}
-표준 라이브러리만 사용한다.
+Usage:  python3 scripts/fetch_feeds.py [YYYY-MM-DD]   (defaults to yesterday in KST)
+Output: {"target": ..., "sources": [{"name", "ok", "error", "items": [{title, url, published_kst, description}]}]}
+Uses the standard library only.
 """
 import html
 import json
@@ -19,13 +19,13 @@ from pathlib import Path
 KST = timezone(timedelta(hours=9))
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
 ROOT = Path(__file__).resolve().parent.parent
-# python.org 배포판은 시스템 인증서를 쓰지 않으므로 macOS 기본 CA 번들을 명시
+# The python.org build does not use the system certificates, so point it at the macOS default CA bundle
 _CA = "/etc/ssl/cert.pem"
 SSL_CTX = ssl.create_default_context(cafile=_CA) if Path(_CA).exists() else ssl.create_default_context()
 
 
 def load_sources():
-    """sources.yaml에서 name / feed / feed_timezone만 간단히 파싱 (PyYAML 의존성 없이)."""
+    """Minimal parse of name / feed / feed_timezone from sources.yaml (no PyYAML dependency)."""
     sources, cur = [], None
     for line in (ROOT / "config" / "sources.yaml").read_text(encoding="utf-8").splitlines():
         m = re.match(r"\s*-\s*name:\s*(.+)", line)
@@ -42,7 +42,7 @@ def load_sources():
 def parse_date(text, default_tz):
     text = text.strip()
     try:
-        dt = parsedate_to_datetime(text)  # RFC 822 (예: Sun, 22 Nov 2026 10:36:55 +0530)
+        dt = parsedate_to_datetime(text)  # RFC 822 (e.g. Sun, 22 Nov 2026 10:36:55 +0530)
     except (TypeError, ValueError):
         dt = None
     if dt is None:
@@ -76,7 +76,7 @@ def fetch(src, target):
         req = urllib.request.Request(src["feed"], headers={"User-Agent": UA})
         with urllib.request.urlopen(req, timeout=30, context=SSL_CTX) as r:
             root = ET.fromstring(r.read())
-    except Exception as e:  # noqa: BLE001 — 사이트별 실패는 기록하고 계속 진행
+    except Exception as e:  # noqa: BLE001 - record per-site failures and keep going
         return {"name": src["name"], "ok": False, "error": f"{type(e).__name__}: {e}", "items": []}
     items = []
     for it in root.iter("item"):
