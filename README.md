@@ -43,8 +43,8 @@ macOS launchd가 매일 07:30에 `claude -p "/daily-brief"`를 실행하며, 사
 ## 설치
 
 ```bash
-git clone <이 저장소 URL>
-cd <clone한 폴더>
+git clone https://github.com/greyhawk16/cybersecurity_news_collector.git
+cd cybersecurity_news_collector
 
 # 1. 수신 주소 설정
 cp .env.example .env
