@@ -1,0 +1,27 @@
+# 수신 주소는 .env의 RECIPIENT_EMAIL_ADDRESS에서 읽는다 (scripts/get_recipient.sh)
+
+timezone: Asia/Seoul
+
+# 수집 대상 사이트. 새 사이트는 아래 형식으로 항목만 추가하면 됩니다.
+#   feed          : RSS 주소 (scripts/fetch_feeds.py가 어제 기사만 골라냄)
+#   feed_timezone : pubDate에 시간대가 없을 때 적용할 오프셋 (예: +09:00). RFC 822 형식이면 생략
+#   fetch_article : 기사 본문 WebFetch 가능 여부. false면 RSS description만으로 요약
+sources:
+  - name: The Hacker News
+    url: https://thehackernews.com/
+    language: en
+    feed: https://feeds.feedburner.com/TheHackersNews
+    fetch_article: false
+    notes: >
+      사이트 본문은 Cloudflare 차단(HTTP 403)으로 열리지 않으므로 RSS description만으로 요약.
+      "Webinar", "Expert Insights", 스폰서 글은 제외.
+
+  - name: 보안뉴스
+    url: https://www.boannews.com/
+    language: ko
+    feed: https://www.boannews.com/rss/allArticle.xml
+    feed_timezone: "+09:00"
+    fetch_article: true
+    notes: >
+      pubDate는 "2026-11-22 19:57:10" 형식의 KST.
+      보안 무관 기사(일반 IT, 행사·인사 소식, 칼럼 홍보)는 제외.

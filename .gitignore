@@ -1,0 +1,31 @@
+# 비밀값 (수신 이메일 주소 등)
+.env
+.env.*
+!.env.example
+
+# 실행 결과물 — 폴더 구조만 유지
+logs/*
+!logs/.gitkeep
+reports/*
+!reports/.gitkeep
+work/*
+!work/.gitkeep
+
+# 끄기 절차로 옮긴 plist (내 경로 포함)
+launchd/disabled.plist
+
+# Claude Code 개인 설정 (로컬 권한 승인 기록 등)
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# macOS / 에디터
+.DS_Store
+.vscode/
+.idea/
+
+# 개인 메모
+메모.txt

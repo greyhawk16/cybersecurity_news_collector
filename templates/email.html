@@ -1,0 +1,38 @@
+<!--
+  daily-brief용 메일 템플릿. {{...}} 부분을 채워서 사용한다.
+  Gmail은 <style> 태그를 일부 무시하므로 인라인 스타일만 사용한다.
+-->
+<div style="font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#1f2328;line-height:1.6;">
+  <h1 style="font-size:20px;border-bottom:2px solid #d0d7de;padding-bottom:8px;margin-bottom:16px;">
+    🛡️ Claude 일일 보안 브리핑 · {{TARGET_DATE}}
+  </h1>
+  <p style="color:#59636e;font-size:13px;margin-top:0;">수집 기사 {{ARTICLE_COUNT}}건 · 출처: {{SOURCE_NAMES}}</p>
+
+  <h2 style="font-size:16px;margin-top:24px;">📈 오늘의 트렌드</h2>
+  <ul style="padding-left:20px;">
+    {{TREND_ITEMS}}
+    <!-- 3~5개. 각 항목 형식(출처 필수):
+    <li style="margin-bottom:6px;">트렌드 내용
+      <span style="font-size:12px;color:#59636e;">— 출처: <a href="기사URL" style="color:#59636e;">사이트명</a>, <a href="기사URL" style="color:#59636e;">사이트명</a></span>
+    </li>
+    -->
+  </ul>
+
+  <!-- 카테고리마다 아래 블록을 반복 -->
+  <h2 style="font-size:16px;margin-top:28px;border-left:4px solid #0969da;padding-left:8px;">{{CATEGORY}}</h2>
+  <!-- 기사마다 아래 블록을 반복 -->
+  <div style="margin:12px 0 16px;">
+    <a href="{{URL}}" style="font-weight:600;color:#0969da;text-decoration:none;">{{TITLE}}</a>
+    <span style="color:#59636e;font-size:12px;"> — {{SOURCE}}</span>
+    <p style="margin:4px 0 0;font-size:14px;">{{SUMMARY}}</p>
+    <!-- 병합된 기사면: <p style="margin:2px 0 0;font-size:12px;color:#59636e;">관련: <a href="…">출처명</a>, …</p> -->
+  </div>
+
+  <!-- 실패가 있을 때만 -->
+  <h2 style="font-size:14px;margin-top:28px;color:#cf222e;">⚠️ 수집 실패</h2>
+  <p style="font-size:13px;color:#59636e;">{{FAILED_SOURCES}}</p>
+
+  <p style="font-size:11px;color:#8c959f;margin-top:32px;border-top:1px solid #d0d7de;padding-top:8px;">
+    자동 생성된 브리핑입니다 (Claude Code daily-brief).
+  </p>
+</div>

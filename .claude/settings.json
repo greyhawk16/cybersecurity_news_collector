@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch",
+      "Read",
+      "Glob",
+      "Grep",
+      "Edit(reports/**)",
+      "Edit(work/**)",
+      "Agent(collector)",
+      "Agent(summarizer)",
+      "Agent(qa)",
+      "Bash(date:*)",
+      "Bash(TZ=Asia/Seoul date:*)",
+      "Bash(ls:*)",
+      "Bash(scripts/get_recipient.sh)",
+      "Bash(./scripts/get_recipient.sh)",
+      "Bash(python3 scripts/fetch_feeds.py:*)",
+      "mcp__claude_ai_Gmail__send_message"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "mcp__claude_ai_Gmail__trash_message",
+      "mcp__claude_ai_Gmail__trash_thread",
+      "mcp__claude_ai_Gmail__forward",
+      "mcp__claude_ai_Gmail__delete_draft",
+      "mcp__claude_ai_Gmail__delete_label"
+    ]
+  }
+}
