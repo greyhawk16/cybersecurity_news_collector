@@ -1,12 +1,12 @@
-#!/bin/zsh
-# Run by launchd every day at 07:30. Builds and sends the previous day's security news briefing.
+#!/usr/bin/env bash
+# Run by cron (or systemd timer) every day at 07:30 KST. Builds and sends the previous day's security news briefing.
 set -u
 
-# Project path: the parent folder of this script's location (scripts/)
-PROJECT_DIR="${0:A:h:h}"
+# Project path: two levels above this script's folder (scripts/debian/)
+PROJECT_DIR="$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd)"
 
-# launchd's PATH is nearly empty, so add the usual locations where claude is installed
-export PATH="$HOME/.local/bin:$HOME/.claude/local:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+# cron's PATH is nearly empty, so add the usual locations where claude is installed
+export PATH="$HOME/.local/bin:$HOME/.claude/local:/usr/local/bin:/usr/bin:/bin:$PATH"
 CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude)}"
 
 cd "$PROJECT_DIR" || exit 1

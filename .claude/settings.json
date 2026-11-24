@@ -13,8 +13,11 @@
       "Bash(date:*)",
       "Bash(TZ=Asia/Seoul date:*)",
       "Bash(ls:*)",
-      "Bash(scripts/get_recipient.sh)",
-      "Bash(./scripts/get_recipient.sh)",
+      "Bash(uname:*)",
+      "Bash(scripts/macos/get_recipient.sh)",
+      "Bash(./scripts/macos/get_recipient.sh)",
+      "Bash(scripts/debian/get_recipient.sh)",
+      "Bash(./scripts/debian/get_recipient.sh)",
       "Bash(python3 scripts/fetch_feeds.py:*)",
       "mcp__claude_ai_Gmail__send_message"
     ],

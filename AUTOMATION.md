@@ -1,6 +1,7 @@
 # 자동 실행 켜기 / 끄기
 
-매일 07:30에 macOS launchd가 `scripts/run_daily.sh`를 실행해 전날 보안 브리핑을 메일로 보냅니다.
+매일 07:30에 macOS launchd가 `scripts/macos/run_daily.sh`를 실행해 전날 보안 브리핑을 메일로 보냅니다.
+Debian 계열 리눅스는 아래 [Debian 계열 리눅스 (cron)](#debian-계열-리눅스-cron) 절을 보세요.
 
 - 작업 이름(Label): `com.user.securitybrief`
 - 원본 설정 파일: `launchd/com.user.securitybrief.plist` (경로 자리에 `__PROJECT_DIR__`가 들어 있는 템플릿)
@@ -106,5 +107,34 @@ test -f launchd/com.user.securitybrief.plist \
 
 ## 참고
 
-- 프로젝트 폴더를 옮기면, 옮긴 폴더에서 "실행 시각·설정을 바꿨을 때" 절차를 다시 실행하세요. 새 경로가 자동으로 plist에 들어갑니다. `scripts/run_daily.sh`는 자기 위치를 기준으로 동작하므로 수정할 필요가 없습니다.
+- 프로젝트 폴더를 옮기면, 옮긴 폴더에서 "실행 시각·설정을 바꿨을 때" 절차를 다시 실행하세요. 새 경로가 자동으로 plist에 들어갑니다. `scripts/macos/run_daily.sh`·`scripts/debian/run_daily.sh`는 자기 위치를 기준으로 동작하므로 수정할 필요가 없습니다.
 - 폴더 경로에 `|` 또는 `&` 문자가 있으면 `sed` 치환이 깨지므로 그런 이름은 피하세요.
+
+---
+
+## Debian 계열 리눅스 (cron)
+
+`scripts/debian/run_daily.sh`를 cron으로 매일 실행합니다. 아래 명령도 clone한 폴더에서 실행합니다.
+
+먼저 그 장비에서 `claude`를 실행해 claude.ai 계정으로 로그인하고 폴더 신뢰를 승인하세요(최초 1회). 메일은 그 계정에 연결된 Gmail 커넥터로 발송됩니다.
+
+```bash
+# 시스템 시간대 확인 — Asia/Seoul이 아니면 아래 시각(30 7)을 해당 시간대로 환산
+timedatectl | grep "Time zone"
+
+# 켜기: 현재 crontab에 한 줄 추가 (경로는 $PWD로 자동 입력)
+( crontab -l 2>/dev/null | grep -v securitybrief; echo "30 7 * * * $PWD/scripts/debian/run_daily.sh # securitybrief" ) | crontab -
+
+# 상태 확인
+crontab -l | grep securitybrief
+
+# 지금 바로 한 번 실행
+scripts/debian/run_daily.sh
+
+# 끄기 (해당 줄만 제거)
+crontab -l | grep -v securitybrief | crontab -
+```
+
+- 장비가 꺼져 있거나 잠자기 중이면 그 시각의 실행은 건너뜁니다.
+- 실행 로그는 macOS와 같은 `logs/YYYY-MM-DD.log`에 남습니다.
+- 폴더를 옮기면 "끄기" 후 옮긴 폴더에서 "켜기"를 다시 실행하세요.

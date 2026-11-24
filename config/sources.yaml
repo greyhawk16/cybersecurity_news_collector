@@ -1,4 +1,4 @@
-# 수신 주소는 .env의 RECIPIENT_EMAIL_ADDRESS에서 읽는다 (scripts/get_recipient.sh)
+# 수신 주소는 .env의 RECIPIENT_EMAIL_ADDRESS에서 읽는다 (scripts/<os>/get_recipient.sh)
 
 timezone: Asia/Seoul
 

@@ -1,6 +1,9 @@
 <!--
   daily-brief용 메일 템플릿. {{...}} 부분을 채워서 사용한다.
   Gmail은 <style> 태그를 일부 무시하므로 인라인 스타일만 사용한다.
+  출처 표기: 본문(트렌드·기사)의 [n]은 해당 기사 URL로 하이퍼링크를 건다.
+  맨 아래 "출처" 단락의 [n]은 링크 없는 텍스트로 두고, URL 글자만 링크로 한다.
+  번호는 문서에 처음 나온 순서로 1부터 연속 부여하고, 같은 기사는 어디서나 같은 번호를 쓴다.
 -->
 <div style="font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;max-width:720px;margin:0 auto;color:#1f2328;line-height:1.6;">
   <h1 style="font-size:20px;border-bottom:2px solid #d0d7de;padding-bottom:8px;margin-bottom:16px;">
@@ -11,26 +14,33 @@
   <h2 style="font-size:16px;margin-top:24px;">📈 오늘의 트렌드</h2>
   <ul style="padding-left:20px;">
     {{TREND_ITEMS}}
-    <!-- 3~5개. 각 항목 형식(출처 필수):
+    <!-- 3~5개. 각 항목 형식(출처 번호 필수, 번호마다 해당 기사 URL 링크):
     <li style="margin-bottom:6px;">트렌드 내용
-      <span style="font-size:12px;color:#59636e;">— 출처: <a href="기사URL" style="color:#59636e;">사이트명</a>, <a href="기사URL" style="color:#59636e;">사이트명</a></span>
+      <span style="font-size:12px;color:#59636e;">— 출처: <a href="기사1URL" style="color:#0969da;text-decoration:none;">[1]</a>, <a href="기사3URL" style="color:#0969da;text-decoration:none;">[3]</a></span>
     </li>
     -->
   </ul>
 
   <!-- 카테고리마다 아래 블록을 반복 -->
   <h2 style="font-size:16px;margin-top:28px;border-left:4px solid #0969da;padding-left:8px;">{{CATEGORY}}</h2>
-  <!-- 기사마다 아래 블록을 반복 -->
+  <!-- 기사마다 아래 블록을 반복. {{REF_NUMBERS}}는 번호마다 링크: <a href="URL" style="color:#0969da;text-decoration:none;">[n]</a>
+       병합된 기사면 번호를 모두 붙인다: <a href="URL2" …>[2]</a><a href="URL5" …>[5]</a> -->
   <div style="margin:12px 0 16px;">
-    <a href="{{URL}}" style="font-weight:600;color:#0969da;text-decoration:none;">{{TITLE}}</a>
-    <span style="color:#59636e;font-size:12px;"> — {{SOURCE}}</span>
+    <span style="font-weight:600;">{{TITLE}}</span>
+    <span style="color:#59636e;font-size:12px;"> {{REF_NUMBERS}}</span>
     <p style="margin:4px 0 0;font-size:14px;">{{SUMMARY}}</p>
-    <!-- 병합된 기사면: <p style="margin:2px 0 0;font-size:12px;color:#59636e;">관련: <a href="…">출처명</a>, …</p> -->
   </div>
 
   <!-- 실패가 있을 때만 -->
   <h2 style="font-size:14px;margin-top:28px;color:#cf222e;">⚠️ 수집 실패</h2>
   <p style="font-size:13px;color:#59636e;">{{FAILED_SOURCES}}</p>
+
+  <!-- 항상 맨 아래. 본문에 나온 번호 순서대로, 기사마다 한 줄 -->
+  <h2 style="font-size:14px;margin-top:28px;border-top:1px solid #d0d7de;padding-top:12px;">출처</h2>
+  {{REFERENCE_ITEMS}}
+  <!-- 각 항목 형식: 기사제목은 articles.json 원제 그대로, [n]은 링크 없음, URL 글자 자체만 링크로
+  <p style="margin:2px 0;font-size:12px;color:#59636e;">[1] 기사제목( <a href="URL" style="color:#0969da;">URL</a> )</p>
+  -->
 
   <p style="font-size:11px;color:#8c959f;margin-top:32px;border-top:1px solid #d0d7de;padding-top:8px;">
     자동 생성된 브리핑입니다 (Claude Code daily-brief).
