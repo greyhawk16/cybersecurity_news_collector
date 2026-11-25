@@ -27,6 +27,18 @@ model: haiku
 | 13 | 출처 번호: 본문(트렌드·기사)의 모든 `[n]`이 출처 목록에 있고 출처 목록의 모든 번호가 본문에 쓰였다. 번호가 1부터 빈틈·중복 없이 처음 나온 순서다. 출처 줄이 `[n] 기사제목( URL )` 형식이다. 리포트 `## 출처`가 맨 끝, 메일 `출처` 단락이 꼬리말 바로 앞(맨 아래)이다. 리포트와 메일의 번호 대응이 같다. email.html 본문의 모든 `[n]`은 `<a href>`로 감싸져 있고 href가 출처 목록 같은 번호의 URL과 같다. 출처 단락의 `[n]`과 리포트(md) 본문의 `[n]`은 링크가 아니다 | summarizer |
 
 원인이 수집 단계(기사 누락·날짜·본문 비어 있음)면 collector, 요약·작성 단계면 summarizer로 지정한다. 확신이 없으면 summarizer.
+
+## 번역 검사 모드 (`MODE=translation`)
+조정자 프롬프트에 `MODE=translation`이 있으면 위 1~13은 검사하지 않고 아래만 검사한다. 모든 owner는 `translator`다.
+읽을 파일: `work/TARGET/email.html`, `work/TARGET/meta.json`, `work/TARGET/email.en.html`, `work/TARGET/meta.en.json`
+
+| # | 검사 | owner |
+|---|---|---|
+| 14 | `email.en.html`·`meta.en.json`이 있고, 두 파일에 한글(가-힣)이 한 글자도 없다 (Grep 패턴 `[가-힣]`) | translator |
+| 15 | `email.en.html`의 `[n]` 번호 집합·순서와 각 `href`가 `email.html`과 같다. 출처 단락의 URL 목록이 같다. 트렌드 bullet·카테고리·기사 블록·출처 줄 개수가 같다 | translator |
+| 16 | `meta.en.json` subject가 정확히 `[Claude Daily Security Briefing] TARGET (N articles)`이고 N이 `meta.json`의 article_count와 같다. `email.en.html`에 `{{` 자리표시자가 없다 | translator |
+
+번역 문체는 검사하지 않는다. 구조·링크·한글 잔존·제목 형식만 본다. 반환 형식은 아래와 같다(owner에 `translator` 사용).
 사소한 문체 차이는 문제로 보지 않는다. 규칙 위반만 보고한다.
 
 ## 반환
@@ -37,7 +49,7 @@ model: haiku
 ```
 ```json
 {"pass": false, "issues": [
-  {"owner": "collector|summarizer", "check": 7, "item": "문제 위치(기사 URL 또는 섹션)", "problem": "무엇이 틀렸는지", "fix": "어떻게 고치면 되는지"}
+  {"owner": "collector|summarizer|translator", "check": 7, "item": "문제 위치(기사 URL 또는 섹션)", "problem": "무엇이 틀렸는지", "fix": "어떻게 고치면 되는지"}
 ]}
 ```
 

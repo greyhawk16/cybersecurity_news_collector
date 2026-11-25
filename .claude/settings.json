@@ -10,6 +10,7 @@
       "Agent(collector)",
       "Agent(summarizer)",
       "Agent(qa)",
+      "Agent(translator)",
       "Bash(date:*)",
       "Bash(TZ=Asia/Seoul date:*)",
       "Bash(ls:*)",
@@ -18,6 +19,10 @@
       "Bash(./scripts/macos/get_recipient.sh)",
       "Bash(scripts/debian/get_recipient.sh)",
       "Bash(./scripts/debian/get_recipient.sh)",
+      "Bash(scripts/macos/get_translate_flag.sh)",
+      "Bash(./scripts/macos/get_translate_flag.sh)",
+      "Bash(scripts/debian/get_translate_flag.sh)",
+      "Bash(./scripts/debian/get_translate_flag.sh)",
       "Bash(python3 scripts/fetch_feeds.py:*)",
       "mcp__claude_ai_Gmail__send_message"
     ],
