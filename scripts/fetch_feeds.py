@@ -19,7 +19,8 @@ from pathlib import Path
 KST = timezone(timedelta(hours=9))
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
 ROOT = Path(__file__).resolve().parent.parent
-# The python.org build does not use the system certificates, so point it at the macOS default CA bundle
+# The macOS python.org build does not use the system certificates, so use the macOS CA bundle if present;
+# elsewhere (e.g. Debian) fall back to the system default certificates
 _CA = "/etc/ssl/cert.pem"
 SSL_CTX = ssl.create_default_context(cafile=_CA) if Path(_CA).exists() else ssl.create_default_context()
 

@@ -6,7 +6,7 @@
   <string>com.user.securitybrief</string>
   <key>ProgramArguments</key>
   <array>
-    <string>__PROJECT_DIR__/scripts/run_daily.sh</string>
+    <string>__PROJECT_DIR__/scripts/macos/run_daily.sh</string>
   </array>
   <key>StartCalendarInterval</key>
   <dict>

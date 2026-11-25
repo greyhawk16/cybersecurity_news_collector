@@ -11,9 +11,10 @@ Bash 명령은 아래에 적힌 문자열 그대로 실행하라(앞에 `bash`, 
 
 **최종 출력 규칙**: 너의 최종 출력(stdout)은 그대로 `logs/YYYY-MM-DD.log`에 기록된다. 글자 깨짐을 막기 위해 **영어 ASCII 문자만** 쓰고, 한글·이모지·마크다운·설명 문장 없이 2단계 또는 10단계에 정해진 형식의 **한 줄만** 출력한다. (메일·리포트 본문의 언어 규칙은 그대로다.)
 
-1. **날짜 확정**: `TZ=Asia/Seoul date -v-1d +%F`로 어제 날짜(TARGET)를 구한다.
+1. **OS·날짜 확정**: 먼저 `uname -s`를 실행한다. 결과가 `Darwin`이면 OS_DIR=`macos`, `Linux`이면 OS_DIR=`debian`이다.
+   그다음 어제 날짜(TARGET)를 구한다 — macos: `TZ=Asia/Seoul date -v-1d +%F`, debian: `TZ=Asia/Seoul date -d yesterday +%F`.
 2. **중복 확인**: `reports/TARGET.md`가 있고 첫 줄이 `status: sent`이면 `SKIP target=YYYY-MM-DD reason=already_sent` 한 줄만 출력하고 종료한다. 이 경우 3단계 이후는 실행하지 않는다.
-3. **수신 주소**: `scripts/get_recipient.sh`를 실행해 출력값을 RECIPIENT로 쓴다. `.env`를 직접 열지 않는다. 실패하면 4~7단계는 그대로 진행하되 8단계에서 발송하지 않고 `status: send_failed`로 기록한다.
+3. **수신 주소**: macos면 `scripts/macos/get_recipient.sh`, debian이면 `scripts/debian/get_recipient.sh`를 실행해 출력값을 RECIPIENT로 쓴다. `.env`를 직접 열지 않는다. 실패하면 4~7단계는 그대로 진행하되 8단계에서 발송하지 않고 `status: send_failed`로 기록한다.
 4. **수집**: Agent 도구로 `collector`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD. 수집해 work/TARGET/articles.json에 저장하라."
 5. **요약**: `summarizer`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD. work/TARGET/articles.json으로 리포트·메일 HTML·메타를 만들어라."
 6. **QA**: `qa`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD. 결과물을 검사하라." 반환된 JSON을 그대로 `work/TARGET/qa-round{R}.json`에 Write로 저장한다(R=1부터).
