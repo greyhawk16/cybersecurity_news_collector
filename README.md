@@ -63,6 +63,7 @@ claude
 # 3. 수동으로 한 번 실행해 메일이 오는지 확인 (macOS)
 scripts/macos/run_daily.sh
 #    Debian 계열 리눅스라면
+sudo apt update && sudo apt install fonts-nanum -y
 scripts/debian/run_daily.sh
 cat logs/$(TZ=Asia/Seoul date +%F).log
 

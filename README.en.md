@@ -65,6 +65,7 @@ claude
 # 3. Run once manually and check that the email arrives (macOS)
 scripts/macos/run_daily.sh
 #    on Debian-based Linux
+sudo apt update && sudo apt install fonts-nanum -y
 scripts/debian/run_daily.sh
 cat logs/$(TZ=Asia/Seoul date +%F).log
 
