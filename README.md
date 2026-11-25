@@ -1,9 +1,10 @@
-# Claude 일일 보안 브리핑
+# 개요
 
 [English](README.en.md)
 
 전날(KST) 게시된 사이버 보안 뉴스를 수집·요약해 매일 아침 이메일로 보내는 Claude Code 에이전트입니다.
-macOS launchd가 매일 07:30에 `claude -p "/daily-brief"`를 실행하며, 사람이 개입하지 않는 headless 환경에서 동작합니다.
+macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일 07:30에 `claude -p "/daily-brief"`를 실행합니다.
+
 
 ## 메일 구성
 
@@ -15,6 +16,7 @@ macOS launchd가 매일 07:30에 `claude -p "/daily-brief"`를 실행하며, 사
 4. **출처** — 번호순 `[n] 기사제목( URL )` 목록
 
 발송본은 `reports/YYYY-MM-DD.md`에 보관되고, 다음 날 트렌드 비교에 쓰입니다.
+
 
 ## 에이전트 구조
 
@@ -36,33 +38,53 @@ macOS launchd가 매일 07:30에 `claude -p "/daily-brief"`를 실행하며, 사
 
 ## 요구 사항
 
+#### 기술 스택
 ![Static Badge](https://img.shields.io/badge/AI-black?style=for-the-badge)![Claude](https://img.shields.io/badge/claude-%23D97757.svg?style=for-the-badge&logo=claude&logoColor=white)![Claude Code](https://img.shields.io/badge/Claude%20Code-%23D97757.svg?style=for-the-badge&logo=claudecode&logoColor=white)
 
 ![Static Badge](https://img.shields.io/badge/OS-black?style=for-the-badge)![Debian](https://img.shields.io/badge/Debian-%23D70A53.svg?style=for-the-badge&logo=debian&logoColor=white)![macOS](https://img.shields.io/badge/mac%20os-%23000000.svg?style=for-the-badge&logo=macos&logoColor=F0F0F0&logoSize=auto)
 
 ![Static Badge](https://img.shields.io/badge/Languages-black?style=for-the-badge)![Bash Script](https://img.shields.io/badge/bash_script-%23121011.svg?style=for-the-badge&logo=gnu-bash&logoColor=white)![Python](https://img.shields.io/badge/python-%233670A0.svg?style=for-the-badge&logo=python&logoColor=ffdd54)
 
-- macOS (launchd) 또는 Debian 계열 리눅스 (cron, bash, GNU date)
+#### 별도 필요
 - [Claude Code](https://docs.claude.com/en/docs/claude-code) 설치 및 로그인
 - claude.ai에서 **Gmail 커넥터** 연결 (`mcp__claude_ai_Gmail__send_message` 사용)
-- Python 3 (표준 라이브러리만 사용)
+
 
 ## 설치
+
+#### 공통
 
 ```bash
 git clone https://github.com/greyhawk16/cybersecurity_news_collector.git
 cd cybersecurity_news_collector
 
-# 1. 수신 주소 설정
+# 수신 이메일 설정
 cp .env.example .env
 # .env를 열어 RECIPIENT_EMAIL_ADDRESS를 내 주소로 수정
 
-# 2. 폴더 신뢰 승인 (최초 1회) — claude를 실행해 신뢰를 승인한 뒤 종료
+# 폴더 신뢰 승인 (최초 1회) — claude를 실행해 신뢰를 승인한 뒤 종료
 claude
 
-# 3. 수동으로 한 번 실행해 메일이 오는지 확인 (macOS)
+# 수동으로 한 번 실행해 메일이 오는지 확인 (macOS)
 scripts/macos/run_daily.sh
+
 #    Debian 계열 리눅스라면
+sudo apt update && sudo apt install fonts-nanum -y
+scripts/debian/run_daily.sh
+cat logs/$(TZ=Asia/Seoul date +%F).log
+
+# 4. 매일 자동 실행 등록 → AUTOMATION.md 참고
+```
+
+#### MacOS
+
+```bash
+scripts/macos/run_daily.sh
+```
+
+#### Debian Linux
+
+```bash
 sudo apt update && sudo apt install fonts-nanum -y
 scripts/debian/run_daily.sh
 cat logs/$(TZ=Asia/Seoul date +%F).log
@@ -75,6 +97,7 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 > (Debian) 실행할 리눅스 장비에서 직접 `claude`를 실행해 claude.ai 계정으로 로그인하고 폴더 신뢰를 승인해야 합니다. Gmail 커넥터가 claude.ai 계정에 연결되어 있어야 메일이 발송됩니다.
 
 자동 실행 켜기·끄기, 문제 해결은 [AUTOMATION.md](AUTOMATION.md)를 보세요.
+
 
 ## 수집 사이트 추가
 
@@ -108,18 +131,16 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 | `launchd/` | launchd plist 템플릿 |
 | `reports/`, `logs/`, `work/` | 실행 결과물 (git에서 제외) |
 
-## 보안 설계
+## 참고
 
+- 매일 실행할 때마다 Claude 사용량이 발생합니다.
+- The Hacker News는 기사 본문이 Cloudflare로 차단되어 RSS description만으로 요약합니다.
 - 에이전트는 `.env`를 직접 읽지 못합니다(`settings.json` deny). 수신 주소는 `scripts/<os>/get_recipient.sh` 출력으로만 받습니다.
 - Gmail 도구는 `send_message`만 허용하고, 삭제·전달 등은 거부합니다.
 - 웹 페이지와 RSS 내용은 데이터로만 다루며, 그 안의 지시문은 따르지 않도록 모든 에이전트에 명시되어 있습니다.
 - 같은 날짜 리포트의 첫 줄이 `status: sent`이면 다시 보내지 않습니다.
 
-## 참고
-
-- 매일 실행할 때마다 Claude 사용량이 발생합니다.
-- The Hacker News는 기사 본문이 Cloudflare로 차단되어 RSS description만으로 요약합니다.
-
 ## 라이선스
 
 [MIT](LICENSE)
+
