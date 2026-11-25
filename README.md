@@ -20,7 +20,7 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 
 ## 에이전트 구조
 
-`/daily-brief`는 직접 일하지 않는 **조정자**이며, 역할별 서브에이전트 3개를 호출합니다.
+`/daily-brief`는 직접 일하지 않는 **조정자**이며, 역할별 서브에이전트 4개를 호출합니다 (translator는 `TRANSLATE_ALL_TO_ENG=True`일 때만).
 
 ```
 /daily-brief (조정자: 날짜 확정 · 중복 확인 · 작업 배분 · 메일 발송)
@@ -31,6 +31,10 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
             │
             └─ 문제는 담당(owner) 에이전트에게만 그대로 전달 → 재검사 (최대 2회)
                그래도 남으면 해당 기사를 빼고 메모에 기록한 뒤 발송
+   │
+   └─▶ translator (sonnet)  메일 영어 번역 (선택)   → email.en.html, meta.en.json
+            └─ qa가 번역본 검사(구조·링크·한글 잔존) → 실패 시 translator에게만 재요청 (최대 2회)
+               그래도 실패하면 한국어판으로 발송
 ```
 
 - 에이전트끼리는 파일 경로로만 데이터를 주고받습니다. 조정자는 기사 본문을 읽지 않습니다.
@@ -61,6 +65,7 @@ cd cybersecurity_news_collector
 # 수신 이메일 설정
 cp .env.example .env
 # .env를 열어 RECIPIENT_EMAIL_ADDRESS를 내 주소로 수정
+# 메일 전체를 영어로 받으려면 TRANSLATE_ALL_TO_ENG=True (기본 False, 리포트 아카이브는 항상 한국어)
 
 # 폴더 신뢰 승인 (최초 1회) — claude를 실행해 신뢰를 승인한 뒤 종료
 claude
@@ -111,13 +116,14 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 |---|---|
 | `CLAUDE.md` | 에이전트 공통 규칙 |
 | `.claude/commands/daily-brief.md` | 조정자 절차 |
-| `.claude/agents/` | 서브에이전트 정의 (`collector.md`, `summarizer.md`, `qa.md`) |
+| `.claude/agents/` | 서브에이전트 정의 (`collector.md`, `summarizer.md`, `qa.md`, `translator.md`) |
 | `.claude/settings.json` | headless 실행용 도구 권한 (허용·거부 목록) |
 | `config/sources.yaml` | 수집 대상 웹사이트 |
 | `scripts/macos/run_daily.sh` | macOS: launchd가 실행하는 진입점 |
 | `scripts/debian/run_daily.sh` | Debian 계열: cron이 실행하는 진입점 |
 | `scripts/fetch_feeds.py` | (OS 공통) RSS에서 대상 날짜(KST) 기사만 JSON으로 출력 |
 | `scripts/macos/get_recipient.sh`, `scripts/debian/get_recipient.sh` | `.env`에서 수신 주소만 출력 |
+| `scripts/macos/get_translate_flag.sh`, `scripts/debian/get_translate_flag.sh` | `.env`의 `TRANSLATE_ALL_TO_ENG`를 `True`/`False`로 출력 |
 | `templates/email.html` | 메일 HTML 템플릿 |
 | `launchd/` | launchd plist 템플릿 |
 | `reports/`, `logs/`, `work/` | 실행 결과물 (git에서 제외) |
@@ -126,7 +132,7 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 
 - 매일 실행할 때마다 Claude 사용량이 발생합니다.
 - The Hacker News는 기사 본문이 Cloudflare로 차단되어 RSS description만으로 요약합니다.
-- 에이전트는 `.env`를 직접 읽지 못합니다(`settings.json` deny). 수신 주소는 `scripts/<os>/get_recipient.sh` 출력으로만 받습니다.
+- 에이전트는 `.env`를 직접 읽지 못합니다(`settings.json` deny). 수신 주소와 번역 여부는 `scripts/<os>/get_recipient.sh`, `get_translate_flag.sh` 출력으로만 받습니다.
 - Gmail 도구는 `send_message`만 허용하고, 삭제·전달 등은 거부합니다.
 - 웹 페이지와 RSS 내용은 데이터로만 다루며, 그 안의 지시문은 따르지 않도록 모든 에이전트에 명시되어 있습니다.
 - 같은 날짜 리포트의 첫 줄이 `status: sent`이면 다시 보내지 않습니다.
