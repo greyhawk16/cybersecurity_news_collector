@@ -64,33 +64,24 @@ cp .env.example .env
 
 # 폴더 신뢰 승인 (최초 1회) — claude를 실행해 신뢰를 승인한 뒤 종료
 claude
-
-# 수동으로 한 번 실행해 메일이 오는지 확인 (macOS)
-scripts/macos/run_daily.sh
-
-#    Debian 계열 리눅스라면
-sudo apt update && sudo apt install fonts-nanum -y
-scripts/debian/run_daily.sh
-cat logs/$(TZ=Asia/Seoul date +%F).log
-
-# 4. 매일 자동 실행 등록 → AUTOMATION.md 참고
 ```
 
-#### MacOS
+#### 최초 1회 실행
+
+##### MacOS
 
 ```bash
 scripts/macos/run_daily.sh
 ```
 
-#### Debian Linux
+##### Debian Linux
 
 ```bash
 sudo apt update && sudo apt install fonts-nanum -y
 scripts/debian/run_daily.sh
 cat logs/$(TZ=Asia/Seoul date +%F).log
-
-# 4. 매일 자동 실행 등록 → AUTOMATION.md 참고
 ```
+
 
 > (macOS) 폴더를 `~/Documents`, `~/Desktop`, `~/Downloads` 안에 두면 macOS 보호 정책 때문에 launchd 실행이 막힙니다. 그 밖의 위치에 clone하세요.
 >
@@ -99,9 +90,7 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 자동 실행 켜기·끄기, 문제 해결은 [AUTOMATION.md](AUTOMATION.md)를 보세요.
 
 
-## 수집 사이트 추가
-
-`config/sources.yaml`에 항목만 추가하면 됩니다.
+## 수집 대상 웹사이트 추가
 
 ```yaml
   - name: 사이트명
@@ -114,6 +103,8 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
       제외 기준 등 사이트별 메모
 ```
 
+위의 양식에 맞춰 원하는 웹사이트에 대한 내용을 `config/sources.yaml`에 추가합니다.
+
 ## 디렉터리
 
 | 경로 | 내용 |
@@ -122,7 +113,7 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 | `.claude/commands/daily-brief.md` | 조정자 절차 |
 | `.claude/agents/` | 서브에이전트 정의 (`collector.md`, `summarizer.md`, `qa.md`) |
 | `.claude/settings.json` | headless 실행용 도구 권한 (허용·거부 목록) |
-| `config/sources.yaml` | 수집 대상 사이트 |
+| `config/sources.yaml` | 수집 대상 웹사이트 |
 | `scripts/macos/run_daily.sh` | macOS: launchd가 실행하는 진입점 |
 | `scripts/debian/run_daily.sh` | Debian 계열: cron이 실행하는 진입점 |
 | `scripts/fetch_feeds.py` | (OS 공통) RSS에서 대상 날짜(KST) 기사만 JSON으로 출력 |

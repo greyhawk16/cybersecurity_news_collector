@@ -1,26 +1,26 @@
-# Claude Daily Security Briefing
+# Overview
 
 [한국어](README.md)
 
 A Claude Code agent that collects the previous day's (KST) cybersecurity news, summarizes it, and emails you a briefing every morning.
-macOS launchd runs `claude -p "/daily-brief"` at 07:30 daily, fully headless with no human in the loop.
+It runs `claude -p "/daily-brief"` at 07:30 every day, using launchd on macOS and a cron job on Debian Linux.
 
-> The agent instructions (`CLAUDE.md`, `.claude/`) and the email are written in Korean. Article summaries keep each article's original language.
 
 ## Email layout
 
 Subject: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)`
 
-1. **Today's trends**: 3–5 bullets in Korean, each ending with source numbers such as `[1], [3]`
-2. **Articles by category**: Ransomware / Vulnerabilities·CVE / Data breach / APT·state-sponsored / Malware·phishing / Policy·regulation / Other. Each article gets a 2–3 sentence summary in its original language plus its source number `[n]`
-3. **Collection failures**: which sites failed and why
-4. **Sources**: numbered list in the form `[n] Article title( URL )`
+1. **Today's trends** — 3–5 bullets in Korean. Each bullet carries the source numbers `[n]` of the articles it is based on
+2. **Articles by category** — Ransomware / Vulnerabilities·CVE / Data breach / APT·state-sponsored / Malware·phishing / Policy·regulation / Other. Each article gets a 2–3 sentence summary in its original language plus its source number `[n]`
+3. **Collection failures** — sites that failed and why
+4. **Sources** — numbered list in the form `[n] Article title( URL )`
 
 Each sent briefing is archived to `reports/YYYY-MM-DD.md` and used for trend comparison the next day.
 
+
 ## Agent architecture
 
-`/daily-brief` is a **coordinator** that does no collection or writing itself. It calls three role-specific subagents.
+`/daily-brief` is a **coordinator** that does no work itself. It calls three role-specific subagents.
 
 ```
 /daily-brief (coordinator: date, duplicate check, dispatch, sending email)
@@ -29,7 +29,7 @@ Each sent briefing is archived to `reports/YYYY-MM-DD.md` and used for trend com
    ├─▶ summarizer (sonnet)  summaries, merging, trends     → reports/DATE.md, email.html, meta.json
    └─▶ qa         (haiku, read-only) rule checks           → {pass, issues[{owner, …}]}
             │
-            └─ each issue is forwarded verbatim only to its owner agent → re-check (max 2 rounds)
+            └─ each issue is forwarded as-is only to its owner agent → re-check (max 2 rounds)
                anything still failing: the article is dropped, noted in the memo, and the email is sent
 ```
 
@@ -38,49 +38,59 @@ Each sent briefing is archived to `reports/YYYY-MM-DD.md` and used for trend com
 
 ## Requirements
 
+#### Tech stack
 ![Static Badge](https://img.shields.io/badge/AI-black?style=for-the-badge)![Claude](https://img.shields.io/badge/claude-%23D97757.svg?style=for-the-badge&logo=claude&logoColor=white)![Claude Code](https://img.shields.io/badge/Claude%20Code-%23D97757.svg?style=for-the-badge&logo=claudecode&logoColor=white)
 
 ![Static Badge](https://img.shields.io/badge/OS-black?style=for-the-badge)![Debian](https://img.shields.io/badge/Debian-%23D70A53.svg?style=for-the-badge&logo=debian&logoColor=white)![macOS](https://img.shields.io/badge/mac%20os-%23000000.svg?style=for-the-badge&logo=macos&logoColor=F0F0F0&logoSize=auto)
 
 ![Static Badge](https://img.shields.io/badge/Languages-black?style=for-the-badge)![Bash Script](https://img.shields.io/badge/bash_script-%23121011.svg?style=for-the-badge&logo=gnu-bash&logoColor=white)![Python](https://img.shields.io/badge/python-%233670A0.svg?style=for-the-badge&logo=python&logoColor=ffdd54)
 
-- macOS (launchd) or a Debian-based Linux (cron, bash, GNU date)
+#### Also required
 - [Claude Code](https://docs.claude.com/en/docs/claude-code), installed and logged in
 - The **Gmail connector** connected on claude.ai (uses `mcp__claude_ai_Gmail__send_message`)
-- Python 3 (standard library only)
 
-## Setup
+
+## Installation
+
+#### Common
 
 ```bash
-git clone <this repository URL>
-cd <cloned folder>
+git clone https://github.com/greyhawk16/cybersecurity_news_collector.git
+cd cybersecurity_news_collector
 
-# 1. Set the recipient
+# Set the recipient email
 cp .env.example .env
-# edit .env and set RECIPIENT_EMAIL_ADDRESS to your address
+# Open .env and set RECIPIENT_EMAIL_ADDRESS to your address
 
-# 2. Trust the folder (once): run claude, accept the trust prompt, then exit
+# Trust the folder (once) — run claude, accept the trust prompt, then exit
 claude
+```
 
-# 3. Run once manually and check that the email arrives (macOS)
+#### First run
+
+##### MacOS
+
+```bash
 scripts/macos/run_daily.sh
-#    on Debian-based Linux
+```
+
+##### Debian Linux
+
+```bash
 sudo apt update && sudo apt install fonts-nanum -y
 scripts/debian/run_daily.sh
 cat logs/$(TZ=Asia/Seoul date +%F).log
-
-# 4. Schedule the daily run: see AUTOMATION.md
 ```
 
-> (macOS) macOS blocks launchd jobs inside `~/Documents`, `~/Desktop`, and `~/Downloads`. Clone somewhere else.
->
-> (Debian) Run `claude` on the Linux machine itself to log in with your claude.ai account and trust the folder. The Gmail connector must be connected to that claude.ai account.
 
-[AUTOMATION.md](AUTOMATION.md) (Korean) covers turning the schedule on and off, and troubleshooting. Run every command in it from the cloned folder: the plist gets your folder path from `$PWD` automatically.
+> (macOS) macOS protection policies block launchd jobs if the folder is inside `~/Documents`, `~/Desktop`, or `~/Downloads`. Clone it somewhere else.
+>
+> (Debian) Run `claude` directly on the Linux machine that will run the job, log in with your claude.ai account, and trust the folder. The Gmail connector must be connected to that claude.ai account for emails to be sent.
+
+See [AUTOMATION.en.md](AUTOMATION.en.md) for turning the schedule on and off, and for troubleshooting.
+
 
 ## Adding a news source
-
-Add an entry to `config/sources.yaml`:
 
 ```yaml
   - name: Site name
@@ -88,12 +98,14 @@ Add an entry to `config/sources.yaml`:
     language: en            # summary language (original language is kept)
     feed: https://example.com/rss
     feed_timezone: "+09:00" # only if pubDate has no time zone
-    fetch_article: true     # whether article pages can be fetched; false = RSS description only
+    fetch_article: true     # whether article pages can be fetched with WebFetch; false = RSS description only
     notes: >
       site-specific notes such as exclusion rules
 ```
 
-## Layout
+Add an entry for the site you want to `config/sources.yaml`, following the format above.
+
+## Directory layout
 
 | Path | Contents |
 |---|---|
@@ -110,17 +122,14 @@ Add an entry to `config/sources.yaml`:
 | `launchd/` | launchd plist template |
 | `reports/`, `logs/`, `work/` | Run output (git-ignored) |
 
-## Security design
-
-- Agents cannot read `.env` directly (denied in `settings.json`). The recipient comes only from `scripts/<os>/get_recipient.sh`.
-- Of the Gmail tools, only `send_message` is allowed. Deleting, forwarding and similar tools are denied.
-- Web pages and RSS content are treated as data only. Every agent is told not to follow instructions found in them.
-- If the report for a date already starts with `status: sent`, nothing is sent again.
-
 ## Notes
 
 - Each daily run uses your Claude usage.
 - The Hacker News blocks article pages with Cloudflare, so its articles are summarized from the RSS description only.
+- Agents cannot read `.env` directly (denied in `settings.json`). The recipient address comes only from the output of `scripts/<os>/get_recipient.sh`.
+- Of the Gmail tools, only `send_message` is allowed. Deleting, forwarding and similar tools are denied.
+- Web pages and RSS content are treated as data only. Every agent is explicitly told not to follow instructions found in them.
+- If the report for a date already starts with `status: sent`, it is not sent again.
 
 ## License
 
