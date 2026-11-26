@@ -18,7 +18,9 @@ Subject: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)`
 Each sent briefing is archived to `reports/YYYY-MM-DD.md` and used for trend comparison the next day.
 
 
-## Agent architecture
+## Agents
+
+#### 1) Components
 
 `/daily-brief` is a **coordinator** that does no work itself. It calls four role-specific subagents (translator only when `TRANSLATE_ALL_TO_ENG=True`).
 
@@ -40,23 +42,39 @@ Each sent briefing is archived to `reports/YYYY-MM-DD.md` and used for trend com
 - Agents exchange data only through file paths. The coordinator never reads article bodies.
 - Only the coordinator can send email. Agents that read web content cannot.
 
+#### 2) How it works
+
+Agents never talk to each other directly. The coordinator calls them in order, and data is handed over as **files in `work/DATE/`**. The coordinator gives each agent only the date, file paths, and the issues it needs to fix.
+
+| Order | Agent | Reads | Writes |
+|---|---|---|---|
+| 1 | collector | `config/sources.yaml`, RSS and article bodies | `articles.json` |
+| 2 | summarizer | `articles.json`, previous `reports/` | `reports/DATE.md`, `email.html`, `meta.json` |
+| 3 | qa | summarizer output | `qa-roundN.json` (issues + owner) |
+| 4 | translator (optional) | `email.html`, `meta.json` | `email.en.html`, `meta.en.json` |
+| 5 | qa (translation check) | translated files | `qa-en-roundN.json` |
+
+- **QA feedback**: the coordinator forwards each qa issue as-is only to its owner agent, which fixes it, and then qa checks again (max 2 rounds). If collector made fixes, summarizer then updates its output to match.
+- **Sending**: finally, the coordinator reads the subject from `meta(.en).json` and the body from `email(.en).html`, sends the email via Gmail, and changes the report's first line to `status: sent`.
+
+
 ## Requirements
 
-#### Tech stack
+#### 1) Tech stack
 ![Static Badge](https://img.shields.io/badge/AI-black?style=for-the-badge)![Claude](https://img.shields.io/badge/claude-%23D97757.svg?style=for-the-badge&logo=claude&logoColor=white)![Claude Code](https://img.shields.io/badge/Claude%20Code-%23D97757.svg?style=for-the-badge&logo=claudecode&logoColor=white)
 
 ![Static Badge](https://img.shields.io/badge/OS-black?style=for-the-badge)![Debian](https://img.shields.io/badge/Debian-%23D70A53.svg?style=for-the-badge&logo=debian&logoColor=white)![macOS](https://img.shields.io/badge/mac%20os-%23000000.svg?style=for-the-badge&logo=macos&logoColor=F0F0F0&logoSize=auto)
 
 ![Static Badge](https://img.shields.io/badge/Languages-black?style=for-the-badge)![Bash Script](https://img.shields.io/badge/bash_script-%23121011.svg?style=for-the-badge&logo=gnu-bash&logoColor=white)![Python](https://img.shields.io/badge/python-%233670A0.svg?style=for-the-badge&logo=python&logoColor=ffdd54)
 
-#### Also required
+#### 2) Also required
 - [Claude Code](https://docs.claude.com/en/docs/claude-code), installed and logged in
 - The **Gmail connector** connected on claude.ai (uses `mcp__claude_ai_Gmail__send_message`)
 
 
 ## Installation
 
-#### Common
+#### 1) Common
 
 ```bash
 git clone https://github.com/greyhawk16/cybersecurity_news_collector.git
@@ -71,17 +89,14 @@ cp .env.example .env
 claude
 ```
 
-#### First run
-
-##### MacOS
+#### 2) First run
 
 ```bash
+# MacOS
 scripts/macos/run_daily.sh
-```
 
-##### Debian Linux
 
-```bash
+# Debian
 sudo apt update && sudo apt install fonts-nanum -y
 scripts/debian/run_daily.sh
 cat logs/$(TZ=Asia/Seoul date +%F).log

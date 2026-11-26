@@ -18,7 +18,9 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 발송본은 `reports/YYYY-MM-DD.md`에 보관되고, 다음 날 트렌드 비교에 쓰입니다.
 
 
-## 에이전트 구조
+## 에이전트
+
+#### 1) 구성
 
 `/daily-brief`는 직접 일하지 않는 **조정자**이며, 역할별 서브에이전트 4개를 호출합니다 (translator는 `TRANSLATE_ALL_TO_ENG=True`일 때만).
 
@@ -40,23 +42,39 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 - 에이전트끼리는 파일 경로로만 데이터를 주고받습니다. 조정자는 기사 본문을 읽지 않습니다.
 - 메일 발송 권한은 조정자에게만 있습니다. 웹 내용을 읽는 에이전트는 메일을 보낼 수 없습니다.
 
+#### 2) 작동 방식
+
+에이전트끼리 직접 대화하지 않고, 조정자가 순서대로 호출하면서 **`work/DATE/` 폴더의 파일**로 데이터를 넘깁니다. 조정자는 각 에이전트에게 날짜·파일 경로·고칠 문제만 전달합니다.
+
+| 순서 | 에이전트 | 읽는 것 | 만드는 것 |
+|---|---|---|---|
+| 1 | collector | `config/sources.yaml`, RSS·기사 본문 | `articles.json` |
+| 2 | summarizer | `articles.json`, 이전 `reports/` | `reports/DATE.md`, `email.html`, `meta.json` |
+| 3 | qa | summarizer 결과물 | `qa-roundN.json` (문제 + 담당 owner) |
+| 4 | translator (선택) | `email.html`, `meta.json` | `email.en.html`, `meta.en.json` |
+| 5 | qa (번역 검사) | 번역본 | `qa-en-roundN.json` |
+
+- **QA 피드백**: 조정자가 qa 결과의 문제를 담당 에이전트(owner)에게만 그대로 전달해 고치게 하고 다시 검사합니다(최대 2회). collector가 고쳤다면 summarizer가 결과물을 다시 맞춥니다.
+- **발송**: 마지막에 조정자가 `meta(.en).json`의 제목과 `email(.en).html` 본문을 읽어 Gmail로 보내고, 리포트 첫 줄을 `status: sent`로 바꿉니다.
+
+
 ## 요구 사항
 
-#### 기술 스택
+#### 1) 기술 스택
 ![Static Badge](https://img.shields.io/badge/AI-black?style=for-the-badge)![Claude](https://img.shields.io/badge/claude-%23D97757.svg?style=for-the-badge&logo=claude&logoColor=white)![Claude Code](https://img.shields.io/badge/Claude%20Code-%23D97757.svg?style=for-the-badge&logo=claudecode&logoColor=white)
 
 ![Static Badge](https://img.shields.io/badge/OS-black?style=for-the-badge)![Debian](https://img.shields.io/badge/Debian-%23D70A53.svg?style=for-the-badge&logo=debian&logoColor=white)![macOS](https://img.shields.io/badge/mac%20os-%23000000.svg?style=for-the-badge&logo=macos&logoColor=F0F0F0&logoSize=auto)
 
 ![Static Badge](https://img.shields.io/badge/Languages-black?style=for-the-badge)![Bash Script](https://img.shields.io/badge/bash_script-%23121011.svg?style=for-the-badge&logo=gnu-bash&logoColor=white)![Python](https://img.shields.io/badge/python-%233670A0.svg?style=for-the-badge&logo=python&logoColor=ffdd54)
 
-#### 별도 필요
+#### 2) 별도 필요
 - [Claude Code](https://docs.claude.com/en/docs/claude-code) 설치 및 로그인
 - claude.ai에서 **Gmail 커넥터** 연결 (`mcp__claude_ai_Gmail__send_message` 사용)
 
 
 ## 설치
 
-#### 공통
+#### 1) 공통
 
 ```bash
 git clone https://github.com/greyhawk16/cybersecurity_news_collector.git
@@ -71,17 +89,14 @@ cp .env.example .env
 claude
 ```
 
-#### 최초 1회 실행
-
-##### MacOS
+#### 2) 최초 1회 실행
 
 ```bash
+# MacOS
 scripts/macos/run_daily.sh
-```
 
-##### Debian Linux
 
-```bash
+# Debian
 sudo apt update && sudo apt install fonts-nanum -y
 scripts/debian/run_daily.sh
 cat logs/$(TZ=Asia/Seoul date +%F).log
@@ -110,7 +125,7 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 
 위의 양식에 맞춰 원하는 웹사이트에 대한 내용을 `config/sources.yaml`에 추가합니다.
 
-## 디렉터리
+## 디렉토리
 
 | 경로 | 내용 |
 |---|---|
