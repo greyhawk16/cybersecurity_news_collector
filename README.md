@@ -1,4 +1,4 @@
-# 개요
+## 개요
 
 [English](README.en.md)
 
@@ -22,7 +22,7 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 
 ## 에이전트
 
-#### 1) 구성
+### 1) 구성
 
 `/daily-brief`는 직접 일하지 않는 **조정자**이며, 역할별 서브에이전트 4개를 호출합니다 (translator는 `TRANSLATE_ALL_TO_ENG=True`일 때만).
 
@@ -44,7 +44,7 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 - 에이전트끼리는 파일 경로로만 데이터를 주고받습니다. 조정자는 기사 본문을 읽지 않습니다.
 - 메일 발송 권한은 조정자에게만 있습니다. 웹 내용을 읽는 에이전트는 메일을 보낼 수 없습니다.
 
-#### 2) 작동 방식
+### 2) 작동 방식
 
 에이전트끼리 직접 대화하지 않고, 조정자가 순서대로 호출하면서 **`work/DATE/` 폴더의 파일**로 데이터를 넘깁니다. 조정자는 각 에이전트에게 날짜·파일 경로·고칠 문제만 전달합니다.
 
@@ -62,21 +62,21 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 
 ## 요구 사항
 
-#### 1) 기술 스택
+### 1) 기술 스택
 ![Static Badge](https://img.shields.io/badge/AI-black?style=for-the-badge)![Claude](https://img.shields.io/badge/claude-%23D97757.svg?style=for-the-badge&logo=claude&logoColor=white)![Claude Code](https://img.shields.io/badge/Claude%20Code-%23D97757.svg?style=for-the-badge&logo=claudecode&logoColor=white)
 
 ![Static Badge](https://img.shields.io/badge/OS-black?style=for-the-badge)![Debian](https://img.shields.io/badge/Debian-%23D70A53.svg?style=for-the-badge&logo=debian&logoColor=white)![macOS](https://img.shields.io/badge/mac%20os-%23000000.svg?style=for-the-badge&logo=macos&logoColor=F0F0F0&logoSize=auto)
 
 ![Static Badge](https://img.shields.io/badge/Languages-black?style=for-the-badge)![Bash Script](https://img.shields.io/badge/bash_script-%23121011.svg?style=for-the-badge&logo=gnu-bash&logoColor=white)![Python](https://img.shields.io/badge/python-%233670A0.svg?style=for-the-badge&logo=python&logoColor=ffdd54)
 
-#### 2) 별도 필요
+### 2) 별도 필요
 - [Claude Code](https://docs.claude.com/en/docs/claude-code) 설치 및 로그인
-- claude.ai에서 **Gmail 커넥터** 연결 (`mcp__claude_ai_Gmail__send_message` 사용)
+- claude.ai에서 [Gmail 커넥터](https://claude.ai/plugins/id/plugin_015pNiaBf85q2h1bpA8p89sM) 연결 (로그인 필요)
 
 
 ## 설치
 
-#### 1) 공통
+### 1) 공통
 
 ```bash
 git clone https://github.com/greyhawk16/cybersecurity_news_collector.git
@@ -91,7 +91,7 @@ cp .env.example .env
 claude
 ```
 
-#### 2) 최초 1회 실행
+### 2) 최초 1회 실행
 
 ```bash
 # MacOS
@@ -116,7 +116,7 @@ cat logs/$(date +%F).log
 
 실행 시각과 "전날"(기사 수집 기준일, 00:00~23:59)은 모두 **기기의 시스템 시간대**를 따릅니다. 시간대를 바꾸려면 OS 시간대만 바꾸면 되고, 코드를 고칠 필요는 없습니다.
 
-#### 1) 시간대 확인·변경
+### 1) 시간대 확인·변경
 
 ```bash
 # macOS
@@ -131,7 +131,7 @@ sudo timedatectl set-timezone Asia/Seoul
 sudo systemctl restart cron              # cron이 새 시간대를 반영하도록 재시작
 ```
 
-#### 2) 실행 시각 변경 (기본 07:30)
+### 2) 실행 시각 변경 (기본 07:30)
 
 - **macOS**: `launchd/com.user.securitybrief.plist`의 `Hour`, `Minute` 값을 고친 뒤(`__PROJECT_DIR__`는 그대로 둠) 다시 등록합니다.
 
