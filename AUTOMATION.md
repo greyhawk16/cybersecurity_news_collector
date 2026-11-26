@@ -19,7 +19,7 @@ Debian 계열 리눅스는 아래 [Debian 계열 리눅스 (cron)](#debian-계�
 먼저 그 장비에서 `claude`를 실행해 claude.ai 계정으로 로그인하고 폴더 신뢰를 승인하세요(최초 1회). 메일은 그 계정에 연결된 Gmail 커넥터로 발송됩니다.
 
 ```bash
-# 시스템 시간대 확인 — Asia/Seoul이 아니면 아래 시각(30 7)을 해당 시간대로 환산
+# 시스템 시간대 확인 — 실행 시각(30 7)과 "전날" 기준 모두 이 시간대를 따름
 timedatectl | grep "Time zone"
 
 # 켜기: 현재 crontab에 한 줄 추가 (경로는 $PWD로 자동 입력)

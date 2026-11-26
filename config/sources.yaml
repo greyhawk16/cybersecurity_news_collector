@@ -1,6 +1,6 @@
 # 수신 주소는 .env의 RECIPIENT_EMAIL_ADDRESS에서 읽는다 (scripts/<os>/get_recipient.sh)
 
-timezone: Asia/Seoul
+# 날짜 기준은 기기의 시스템 시간대 (scripts/fetch_feeds.py가 OS 로컬 시간대를 사용)
 
 # 수집 대상 사이트. 새 사이트는 아래 형식으로 항목만 추가하면 됩니다.
 #   feed          : RSS 주소 (scripts/fetch_feeds.py가 어제 기사만 골라냄)

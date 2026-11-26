@@ -12,7 +12,6 @@
       "Agent(qa)",
       "Agent(translator)",
       "Bash(date:*)",
-      "Bash(TZ=Asia/Seoul date:*)",
       "Bash(ls:*)",
       "Bash(uname:*)",
       "Bash(scripts/macos/get_recipient.sh)",

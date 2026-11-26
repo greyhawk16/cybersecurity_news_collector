@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run by cron (or systemd timer) every day at 07:30 KST. Builds and sends the previous day's security news briefing.
+# Run by cron (or systemd timer) every day at 07:30 (system local time). Builds and sends the previous day's security news briefing.
 set -u
 
 # Project path: two levels above this script's folder (scripts/debian/)
@@ -11,7 +11,7 @@ CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude)}"
 
 cd "$PROJECT_DIR" || exit 1
 mkdir -p logs
-LOG="logs/$(TZ=Asia/Seoul date +%F).log"
+LOG="logs/$(date +%F).log"
 
 if [[ -z "$CLAUDE_BIN" ]]; then
   echo "=== $(LC_ALL=C date "+%F %T %Z") ERROR: claude executable not found (set CLAUDE_BIN to override) ===" >> "$LOG"
@@ -19,7 +19,7 @@ if [[ -z "$CLAUDE_BIN" ]]; then
 fi
 
 echo "=== $(LC_ALL=C date "+%F %T %Z") start (claude=$CLAUDE_BIN) ===" >> "$LOG"
-"$CLAUDE_BIN" -p "/daily-brief" --output-format text < /dev/null >> "$LOG" 2>&1
+"$CLAUDE_BIN" -p "/daily-brief" --permission-mode default --output-format text < /dev/null >> "$LOG" 2>&1
 rc=$?
 echo "=== $(LC_ALL=C date "+%F %T %Z") exit=$rc ===" >> "$LOG"
 exit $rc
