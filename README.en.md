@@ -10,6 +10,8 @@ It runs `claude -p "/daily-brief"` at 07:30 every day, using launchd on macOS an
 
 Subject: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)`
 
+(with `TRANSLATE_ALL_TO_ENG=True`: `[Claude Daily Security Briefing] YYYY-MM-DD (N articles)`, whole email in English)
+
 1. **Today's trends** — 3–5 bullets in Korean. Each bullet carries the source numbers `[n]` of the articles it is based on
 2. **Articles by category** — Ransomware / Vulnerabilities·CVE / Data breach / APT·state-sponsored / Malware·phishing / Policy·regulation / Other. Each article gets a 2–3 sentence summary in its original language plus its source number `[n]`
 3. **Collection failures** — sites that failed and why

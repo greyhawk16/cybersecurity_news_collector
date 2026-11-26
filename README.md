@@ -10,6 +10,8 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 
 제목: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)`
 
+(`TRANSLATE_ALL_TO_ENG=True`이면 `[Claude Daily Security Briefing] YYYY-MM-DD (N articles)`, 본문 전체 영어)
+
 1. **오늘의 트렌드** — 한국어 3~5개 bullet. bullet마다 근거 기사 출처 번호 `[n]`
 2. **카테고리별 기사** — 랜섬웨어 / 취약점·CVE / 데이터 유출 / APT·국가배후 / 악성코드·피싱 / 정책·규제 / 기타. 기사마다 원문 언어로 2~3문장 요약 + 출처 번호 `[n]`
 3. **수집 실패 내역** — 실패한 사이트와 사유
