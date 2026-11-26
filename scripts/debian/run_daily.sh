@@ -19,7 +19,7 @@ if [[ -z "$CLAUDE_BIN" ]]; then
 fi
 
 echo "=== $(LC_ALL=C date "+%F %T %Z") start (claude=$CLAUDE_BIN) ===" >> "$LOG"
-"$CLAUDE_BIN" -p "/daily-brief" --output-format text < /dev/null >> "$LOG" 2>&1
+"$CLAUDE_BIN" -p "/daily-brief" --permission-mode default --output-format text < /dev/null >> "$LOG" 2>&1
 rc=$?
 echo "=== $(LC_ALL=C date "+%F %T %Z") exit=$rc ===" >> "$LOG"
 exit $rc
