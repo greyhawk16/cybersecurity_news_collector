@@ -8,14 +8,14 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 
 ## 메일 구성
 
-제목: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)`
+제목: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)` — 날짜는 메일 발송일 (본문의 기사 기준일은 전날)
 
-(`TRANSLATE_ALL_TO_ENG=True`이면 `[Claude Daily Security Briefing] YYYY-MM-DD (N articles)`, 본문 전체 영어)
+(`TRANSLATE_ALL_TO_ENG=True`이면 `[Claude Daily Security Briefing] YYYY-MM-DD (N articles)`, 본문 전체 영어. 출처 단락의 기사 원제는 번역하지 않음)
 
 1. **오늘의 트렌드** — 한국어 3~5개 bullet. bullet마다 근거 기사 출처 번호 `[n]`
-2. **카테고리별 기사** — 랜섬웨어 / 취약점·CVE / 데이터 유출 / APT·국가배후 / 악성코드·피싱 / 정책·규제 / 기타. 기사마다 원문 언어로 2~3문장 요약 + 출처 번호 `[n]`
+2. **카테고리별 기사** — 랜섬웨어 / 취약점·CVE / 데이터 유출 / APT·국가배후 / 악성코드·피싱 / 정책·규제 / 기타. 기사마다 한국어 제목과 한국어 2~3문장 요약(원문이 영어여도 번역, 고유명사·CVE·제품명은 원문 표기) + 출처 번호 `[n]`
 3. **수집 실패 내역** — 실패한 사이트와 사유
-4. **출처** — 번호순 `[n] 기사제목( URL )` 목록
+4. **출처** — 번호순 `[n] 기사제목( URL )` 목록. 기사제목은 번역하지 않은 원제
 
 발송본은 `reports/YYYY-MM-DD.md`에 보관되고, 다음 날 트렌드 비교에 쓰입니다.
 
@@ -37,7 +37,7 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
                그래도 남으면 해당 기사를 빼고 메모에 기록한 뒤 발송
    │
    └─▶ translator (sonnet)  메일 영어 번역 (선택)   → email.en.html, meta.en.json
-            └─ qa가 번역본 검사(구조·링크·한글 잔존) → 실패 시 translator에게만 재요청 (최대 2회)
+            └─ qa가 번역본 검사(구조·링크·출처 단락 외 한글 잔존) → 실패 시 translator에게만 재요청 (최대 2회)
                그래도 실패하면 한국어판으로 발송
 ```
 
@@ -161,7 +161,7 @@ sudo systemctl restart cron              # cron이 새 시간대를 반영하도
 ```yaml
   - name: 사이트명
     url: https://example.com/
-    language: en            # 요약 언어 (원문 언어 유지)
+    language: en            # 원문 언어 (요약은 항상 한국어)
     feed: https://example.com/rss
     feed_timezone: "+09:00" # pubDate에 시간대가 없을 때만
     fetch_article: true     # 본문 WebFetch 가능 여부. false면 RSS description만 사용
