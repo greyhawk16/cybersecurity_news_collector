@@ -2,7 +2,7 @@
 
 [한국어](README.md)
 
-A Claude Code agent that collects the previous day's (KST) cybersecurity news, summarizes it, and emails you a briefing every morning.
+A Claude Code agent that collects the previous day's (device local time zone) cybersecurity news, summarizes it, and emails you a briefing every morning.
 It runs `claude -p "/daily-brief"` at 07:30 every day, using launchd on macOS and a cron job on Debian Linux.
 
 
@@ -99,7 +99,7 @@ scripts/macos/run_daily.sh
 # Debian
 sudo apt update && sudo apt install fonts-nanum -y
 scripts/debian/run_daily.sh
-cat logs/$(TZ=Asia/Seoul date +%F).log
+cat logs/$(date +%F).log
 ```
 
 
@@ -108,6 +108,50 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 > (Debian) Run `claude` directly on the Linux machine that will run the job, log in with your claude.ai account, and trust the folder. The Gmail connector must be connected to that claude.ai account for emails to be sent.
 
 See [AUTOMATION.en.md](AUTOMATION.en.md) for turning the schedule on and off, and for troubleshooting.
+
+
+## Changing the run time and time zone
+
+Both the run time and the "previous day" (the article collection date, 00:00–23:59) follow the **device's system time zone**. To change the time zone, change the OS time zone; no code changes are needed.
+
+#### 1) Check or change the time zone
+
+```bash
+# macOS
+sudo systemsetup -gettimezone
+sudo systemsetup -listtimezones          # list available time zones
+sudo systemsetup -settimezone Asia/Seoul
+
+# Debian
+timedatectl | grep "Time zone"
+timedatectl list-timezones               # list available time zones
+sudo timedatectl set-timezone Asia/Seoul
+sudo systemctl restart cron              # restart cron so it picks up the new time zone
+```
+
+#### 2) Change the run time (default 07:30)
+
+- **macOS**: edit `Hour` and `Minute` in `launchd/com.user.securitybrief.plist` (leave `__PROJECT_DIR__` as is), then register it again.
+
+  ```bash
+  # run from the cloned folder
+  launchctl bootout gui/$(id -u)/com.user.securitybrief
+  test -f launchd/com.user.securitybrief.plist \
+    && sed "s|__PROJECT_DIR__|$PWD|g" launchd/com.user.securitybrief.plist > ~/Library/LaunchAgents/com.user.securitybrief.plist \
+    && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.securitybrief.plist \
+    || echo "FAILED: run this from the cloned folder (repository root)"
+
+  # move the wake schedule to 5 minutes before the new time (e.g. run at 06:00 → 05:55)
+  sudo pmset repeat wake MTWRFSU 05:55:00
+  ```
+
+- **Debian**: change the first two fields (`minute hour`) of the crontab line and register it again. Example: every day at 06:00
+
+  ```bash
+  ( crontab -l 2>/dev/null | grep -v securitybrief; echo "0 6 * * * $PWD/scripts/debian/run_daily.sh # securitybrief" ) | crontab -
+  ```
+
+> Running right after midnight may miss articles posted late the previous day that are not yet in the RSS feeds, so an early-morning time is recommended.
 
 
 ## Adding a news source
@@ -136,7 +180,7 @@ Add an entry for the site you want to `config/sources.yaml`, following the forma
 | `config/sources.yaml` | News sources |
 | `scripts/macos/run_daily.sh` | macOS: entry point that launchd runs |
 | `scripts/debian/run_daily.sh` | Debian-based: entry point that cron runs |
-| `scripts/fetch_feeds.py` | (all OSes) Outputs only the target date's (KST) articles from each RSS feed as JSON |
+| `scripts/fetch_feeds.py` | (all OSes) Outputs only the target date's (device local time zone) articles from each RSS feed as JSON |
 | `scripts/macos/get_recipient.sh`, `scripts/debian/get_recipient.sh` | Print only the recipient address from `.env` |
 | `scripts/macos/get_translate_flag.sh`, `scripts/debian/get_translate_flag.sh` | Print `TRANSLATE_ALL_TO_ENG` from `.env` as `True`/`False` |
 | `templates/email.html` | Email HTML template |

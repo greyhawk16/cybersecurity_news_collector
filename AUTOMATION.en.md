@@ -19,7 +19,7 @@ cron runs `scripts/debian/run_daily.sh` every day. Run the commands below from t
 First, run `claude` on that machine, log in with your claude.ai account, and trust the folder (once). Emails are sent through the Gmail connector connected to that account.
 
 ```bash
-# Check the system time zone — if it is not Asia/Seoul, convert the time below (30 7) to that time zone
+# Check the system time zone — both the run time (30 7) and the "previous day" use this time zone
 timedatectl | grep "Time zone"
 
 # Enable: add one line to the current crontab (path filled in from $PWD)

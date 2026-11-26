@@ -11,7 +11,7 @@ CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude)}"
 
 cd "$PROJECT_DIR" || exit 1
 mkdir -p logs
-LOG="logs/$(TZ=Asia/Seoul date +%F).log"
+LOG="logs/$(date +%F).log"
 
 if [[ -z "$CLAUDE_BIN" ]]; then
   echo "=== $(LC_ALL=C date "+%F %T %Z") ERROR: claude executable not found (set CLAUDE_BIN to override) ===" >> "$LOG"

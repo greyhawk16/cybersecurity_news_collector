@@ -1,10 +1,10 @@
 # 프로젝트 개요
 사이버 보안 뉴스 데일리 브리핑 에이전트.
-매일 07:30 KST에 launchd(macOS) 또는 cron(Debian 계열)이 `scripts/<os>/run_daily.sh` → `claude -p "/daily-brief"`로 실행한다. (`<os>`는 `macos` 또는 `debian`)
+매일 07:30(기기 로컬 시간)에 launchd(macOS) 또는 cron(Debian 계열)이 `scripts/<os>/run_daily.sh` → `claude -p "/daily-brief"`로 실행한다. (`<os>`는 `macos` 또는 `debian`)
 **사람이 개입하지 않는 headless 환경**이므로 사용자에게 질문하거나 승인을 기다리지 않는다.
 
 ## 핵심 기능
-1. `config/sources.yaml`에 등록된 모든 사이트에서 "전날(KST 00:00~23:59)" 게시된 보안 기사 수집
+1. `config/sources.yaml`에 등록된 모든 사이트에서 "전날(기기 로컬 시간대 00:00~23:59)" 게시된 보안 기사 수집
 2. 기사별 요약: **원문 언어 유지**, 2~3문장 + 카테고리 태그
 3. 전체 트렌드 요약: **한국어**, 3~5개 bullet (최근 reports/와 비교한 흐름 포함)
 4. `reports/YYYY-MM-DD.md`에 아카이브 저장 후 Gmail MCP로 HTML 메일 발송
@@ -15,7 +15,7 @@
 QA가 찾은 문제는 담당(owner) 에이전트에게만 중계한다(최대 2회). 메일 발송은 조정자만 한다.
 
 ## 규칙
-- 날짜 기준은 항상 Asia/Seoul. 시작 시 `uname -s`로 OS를 확인하고 "어제" 날짜를 먼저 확정한다 (macOS: `TZ=Asia/Seoul date -v-1d +%F`, Linux: `TZ=Asia/Seoul date -d yesterday +%F`).
+- 날짜 기준은 항상 기기의 시스템 시간대다. 시작 시 `uname -s`로 OS를 확인하고 "어제" 날짜를 먼저 확정한다 (macOS: `date -v-1d +%F`, Linux: `date -d yesterday +%F`).
 - 사이트 목록은 하드코딩하지 말고 반드시 `config/sources.yaml`을 읽는다.
 - 수신 주소는 `.env`의 `RECIPIENT_EMAIL_ADDRESS` 값이다. `.env` 파일을 직접 읽지 말고 `scripts/<os>/get_recipient.sh` 출력만 사용한다. 스크립트가 실패하면 발송하지 말고 `status: send_failed`로 기록한다.
 - 번역 여부는 `.env`의 `TRANSLATE_ALL_TO_ENG` 값이다. 역시 `.env`를 직접 읽지 말고 `scripts/<os>/get_translate_flag.sh` 출력(`True`/`False`)만 사용한다. 번역 QA가 끝내 실패하면 한국어판으로 발송하고 메모에 남긴다.
@@ -46,7 +46,7 @@ QA가 찾은 문제는 담당(owner) 에이전트에게만 중계한다(최대 2
 - `scripts/debian/` — Debian 계열 리눅스용 `run_daily.sh`(cron 진입점), `get_recipient.sh`(bash)
 - `scripts/<os>/get_recipient.sh` — `.env`에서 수신 주소만 출력
 - `scripts/<os>/get_translate_flag.sh` — `.env`의 `TRANSLATE_ALL_TO_ENG`를 `True`/`False`로 출력
-- `scripts/fetch_feeds.py` — (OS 공통) 각 사이트 RSS에서 TARGET(KST) 날짜 기사만 JSON으로 출력 (시간대 변환 포함)
+- `scripts/fetch_feeds.py` — (OS 공통) 각 사이트 RSS에서 TARGET(로컬 시간대) 날짜 기사만 JSON으로 출력 (시간대 변환 포함)
 - `.claude/commands/daily-brief.md` — 매일 수행할 작업 절차 (조정자)
 - `.claude/agents/` — 서브에이전트 정의: `collector.md`, `summarizer.md`, `qa.md`, `translator.md`
 - `work/YYYY-MM-DD/` — 에이전트 간 중간 파일 (articles.json, email.html, meta.json, qa-roundN.json, 번역 시 email.en.html, meta.en.json, qa-en-roundN.json)

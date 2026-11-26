@@ -13,7 +13,7 @@ model: haiku
 | # | 검사 | owner |
 |---|---|---|
 | 1 | 리포트·email.html 출처 목록의 모든 URL과 제목이 articles.json에 있다 (지어낸 링크·제목 없음) | summarizer |
-| 2 | articles.json 기사의 published_kst 날짜가 모두 TARGET이다 | collector |
+| 2 | articles.json 기사의 published_local 날짜가 모두 TARGET이다 | collector |
 | 3 | articles.json에 광고·웨비나·스폰서·이벤트 홍보·보안 무관 기사가 섞여 있지 않다 | collector |
 | 4 | articles.json의 모든 기사가 리포트 본문과 출처 목록에 실렸다 (병합 포함). 빠진 기사가 있다 | summarizer |
 | 5 | 카테고리가 허용 목록(랜섬웨어 / 취약점·CVE / 데이터 유출 / APT·국가배후 / 악성코드·피싱 / 정책·규제 / 기타) 안에 있다 | summarizer |

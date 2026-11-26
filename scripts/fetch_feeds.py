@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Print, as JSON, only the articles published on the TARGET date (KST) from each site's RSS feed in config/sources.yaml.
+"""Print, as JSON, only the articles published on the TARGET date (in the device's local time zone) from each site's RSS feed in config/sources.yaml.
 
-Usage:  python3 scripts/fetch_feeds.py [YYYY-MM-DD]   (defaults to yesterday in KST)
-Output: {"target": ..., "sources": [{"name", "ok", "error", "items": [{title, url, published_kst, description}]}]}
+Usage:  python3 scripts/fetch_feeds.py [YYYY-MM-DD]   (defaults to yesterday in the local time zone)
+Output: {"target": ..., "sources": [{"name", "ok", "error", "items": [{title, url, published_local, description}]}]}
 Uses the standard library only.
 """
 import html
@@ -16,7 +16,6 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
-KST = timezone(timedelta(hours=9))
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36"
 ROOT = Path(__file__).resolve().parent.parent
 # The macOS python.org build does not use the system certificates, so use the macOS CA bundle if present;
@@ -57,7 +56,7 @@ def parse_date(text, default_tz):
         return None
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=default_tz)
-    return dt.astimezone(KST)
+    return dt.astimezone()  # convert to the system local time zone (DST-aware)
 
 
 def clean(text):
@@ -68,7 +67,7 @@ def clean(text):
 def fetch(src, target):
     if "feed" not in src:
         return {"name": src["name"], "ok": False, "error": "feed 미설정", "items": []}
-    tz = KST
+    tz = datetime.now().astimezone().tzinfo  # default for naive pubDates: system local time zone
     if src.get("feed_timezone", "").startswith(("+", "-")):
         sign = 1 if src["feed_timezone"][0] == "+" else -1
         h, m = src["feed_timezone"][1:].split(":")
@@ -87,14 +86,14 @@ def fetch(src, target):
         items.append({
             "title": clean(it.findtext("title")),
             "url": (it.findtext("link") or "").strip(),
-            "published_kst": dt.strftime("%Y-%m-%d %H:%M"),
+            "published_local": dt.strftime("%Y-%m-%d %H:%M"),
             "description": clean(it.findtext("description")),
         })
     return {"name": src["name"], "ok": True, "error": None, "items": items}
 
 
 def main():
-    target = sys.argv[1] if len(sys.argv) > 1 else (datetime.now(KST) - timedelta(days=1)).strftime("%Y-%m-%d")
+    target = sys.argv[1] if len(sys.argv) > 1 else (datetime.now().astimezone() - timedelta(days=1)).strftime("%Y-%m-%d")
     out = {"target": target, "sources": [fetch(s, target) for s in load_sources()]}
     print(json.dumps(out, ensure_ascii=False, indent=1))
 

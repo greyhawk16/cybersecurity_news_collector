@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-전날(KST) 게시된 사이버 보안 뉴스를 수집·요약해 매일 아침 이메일로 보내는 Claude Code 에이전트입니다.
+전날(기기 시간대 기준) 게시된 사이버 보안 뉴스를 수집·요약해 매일 아침 이메일로 보내는 Claude Code 에이전트입니다.
 macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일 07:30에 `claude -p "/daily-brief"`를 실행합니다.
 
 
@@ -99,7 +99,7 @@ scripts/macos/run_daily.sh
 # Debian
 sudo apt update && sudo apt install fonts-nanum -y
 scripts/debian/run_daily.sh
-cat logs/$(TZ=Asia/Seoul date +%F).log
+cat logs/$(date +%F).log
 ```
 
 
@@ -108,6 +108,50 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 > (Debian) 실행할 리눅스 장비에서 직접 `claude`를 실행해 claude.ai 계정으로 로그인하고 폴더 신뢰를 승인해야 합니다. Gmail 커넥터가 claude.ai 계정에 연결되어 있어야 메일이 발송됩니다.
 
 자동 실행 켜기·끄기, 문제 해결은 [AUTOMATION.md](AUTOMATION.md)를 보세요.
+
+
+## 실행 시각·시간대 변경
+
+실행 시각과 "전날"(기사 수집 기준일, 00:00~23:59)은 모두 **기기의 시스템 시간대**를 따릅니다. 시간대를 바꾸려면 OS 시간대만 바꾸면 되고, 코드를 고칠 필요는 없습니다.
+
+#### 1) 시간대 확인·변경
+
+```bash
+# macOS
+sudo systemsetup -gettimezone
+sudo systemsetup -listtimezones          # 사용 가능한 시간대 목록
+sudo systemsetup -settimezone Asia/Seoul
+
+# Debian
+timedatectl | grep "Time zone"
+timedatectl list-timezones               # 사용 가능한 시간대 목록
+sudo timedatectl set-timezone Asia/Seoul
+sudo systemctl restart cron              # cron이 새 시간대를 반영하도록 재시작
+```
+
+#### 2) 실행 시각 변경 (기본 07:30)
+
+- **macOS**: `launchd/com.user.securitybrief.plist`의 `Hour`, `Minute` 값을 고친 뒤(`__PROJECT_DIR__`는 그대로 둠) 다시 등록합니다.
+
+  ```bash
+  # clone한 폴더에서 실행
+  launchctl bootout gui/$(id -u)/com.user.securitybrief
+  test -f launchd/com.user.securitybrief.plist \
+    && sed "s|__PROJECT_DIR__|$PWD|g" launchd/com.user.securitybrief.plist > ~/Library/LaunchAgents/com.user.securitybrief.plist \
+    && launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.securitybrief.plist \
+    || echo "FAILED: run this from the cloned folder (repository root)"
+
+  # 자동 기상 예약도 새 시각 5분 전으로 (예: 06:00 실행 → 05:55)
+  sudo pmset repeat wake MTWRFSU 05:55:00
+  ```
+
+- **Debian**: crontab 줄의 앞 두 칸(`분 시`)을 바꿔 다시 등록합니다. 예: 매일 06:00
+
+  ```bash
+  ( crontab -l 2>/dev/null | grep -v securitybrief; echo "0 6 * * * $PWD/scripts/debian/run_daily.sh # securitybrief" ) | crontab -
+  ```
+
+> 자정 직후에 실행하면 전날 늦게 올라온 기사가 RSS에 아직 반영되지 않았을 수 있으니, 이른 아침 시각을 권장합니다.
 
 
 ## 수집 대상 웹사이트 추가
@@ -136,7 +180,7 @@ cat logs/$(TZ=Asia/Seoul date +%F).log
 | `config/sources.yaml` | 수집 대상 웹사이트 |
 | `scripts/macos/run_daily.sh` | macOS: launchd가 실행하는 진입점 |
 | `scripts/debian/run_daily.sh` | Debian 계열: cron이 실행하는 진입점 |
-| `scripts/fetch_feeds.py` | (OS 공통) RSS에서 대상 날짜(KST) 기사만 JSON으로 출력 |
+| `scripts/fetch_feeds.py` | (OS 공통) RSS에서 대상 날짜(기기 시간대) 기사만 JSON으로 출력 |
 | `scripts/macos/get_recipient.sh`, `scripts/debian/get_recipient.sh` | `.env`에서 수신 주소만 출력 |
 | `scripts/macos/get_translate_flag.sh`, `scripts/debian/get_translate_flag.sh` | `.env`의 `TRANSLATE_ALL_TO_ENG`를 `True`/`False`로 출력 |
 | `templates/email.html` | 메일 HTML 템플릿 |
