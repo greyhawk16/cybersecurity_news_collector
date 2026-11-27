@@ -77,7 +77,7 @@ sudo pmset repeat wake MTWRFSU 07:25:00
 launchctl kickstart gui/$(id -u)/com.user.securitybrief
 ```
 
-전날 리포트(`reports/YYYY-MM-DD.md`)의 첫 줄이 이미 `status: sent`이면 다시 보내지 않고 종료합니다.
+실행일 리포트(`reports/YYYY-MM-DD.md`, 오늘 날짜)의 첫 줄이 이미 `status: sent`이면 다시 보내지 않고 종료합니다.
 
 #### 4) 잠시 끄기 / 다시 켜기
 

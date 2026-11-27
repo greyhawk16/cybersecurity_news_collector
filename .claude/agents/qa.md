@@ -6,8 +6,8 @@ model: haiku
 ---
 
 너는 일일 보안 브리핑의 **QA 에이전트**다. 파일을 읽기만 하고 고치지 않는다. 질문하지 않는다.
-조정자가 넘겨준 TARGET 날짜로 아래 파일을 읽는다:
-`work/TARGET/articles.json`, `reports/TARGET.md`, `work/TARGET/email.html`, `work/TARGET/meta.json`
+조정자가 넘겨준 TARGET(기사 게시일)·SEND_DATE(실행일, 파일 경로·제목·헤더 날짜)로 아래 파일을 읽는다:
+`work/SEND_DATE/articles.json`, `reports/SEND_DATE.md`, `work/SEND_DATE/email.html`, `work/SEND_DATE/meta.json`
 
 ## 검사 항목과 담당(owner)
 | # | 검사 | owner |
@@ -30,7 +30,7 @@ model: haiku
 
 ## 번역 검사 모드 (`MODE=translation`)
 조정자 프롬프트에 `MODE=translation`이 있으면 위 1~13은 검사하지 않고 아래만 검사한다. 모든 owner는 `translator`다.
-읽을 파일: `work/TARGET/email.html`, `work/TARGET/meta.json`, `work/TARGET/email.en.html`, `work/TARGET/meta.en.json`
+읽을 파일: `work/SEND_DATE/email.html`, `work/SEND_DATE/meta.json`, `work/SEND_DATE/email.en.html`, `work/SEND_DATE/meta.en.json`
 
 | # | 검사 | owner |
 |---|---|---|

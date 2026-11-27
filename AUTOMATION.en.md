@@ -77,7 +77,7 @@ You can check the registered path with `grep -A1 ProgramArguments ~/Library/Laun
 launchctl kickstart gui/$(id -u)/com.user.securitybrief
 ```
 
-If the first line of the previous day's report (`reports/YYYY-MM-DD.md`) is already `status: sent`, it exits without sending again.
+If the first line of the run date's report (`reports/YYYY-MM-DD.md`, today's date) is already `status: sent`, it exits without sending again.
 
 #### 4) Temporarily disable / re-enable
 
