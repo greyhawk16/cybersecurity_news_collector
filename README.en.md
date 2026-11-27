@@ -8,7 +8,7 @@ It runs `claude -p "/daily-brief"` at 07:30 every day, using launchd on macOS an
 
 ## Email layout
 
-Subject: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)` — the date is the send date (the articles in the body are from the previous day)
+Subject: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)` — the date is the run (send) date. The email header and report file name use the same date; the articles are from the previous day
 
 (with `TRANSLATE_ALL_TO_ENG=True`: `[Claude Daily Security Briefing] YYYY-MM-DD (N articles)`, whole email in English, except that article titles in the Sources section stay in their original language)
 
@@ -17,7 +17,7 @@ Subject: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)` — the dat
 3. **Collection failures** — sites that failed and why
 4. **Sources** — numbered list in the form `[n] Article title( URL )`. Article titles are the untranslated originals
 
-Each sent briefing is archived to `reports/YYYY-MM-DD.md` and used for trend comparison the next day.
+Each sent briefing is archived to `reports/YYYY-MM-DD.md` (run date) and used for trend comparison the next day.
 
 
 ## Agents

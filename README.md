@@ -8,7 +8,7 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 
 ## 메일 구성
 
-제목: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)` — 날짜는 메일 발송일 (본문의 기사 기준일은 전날)
+제목: `[Claude 일일 보안 브리핑] YYYY-MM-DD (기사 N건)` — 날짜는 실행(발송)일. 본문 헤더·리포트 파일 이름도 같은 날짜이며, 기사는 전날 게시분
 
 (`TRANSLATE_ALL_TO_ENG=True`이면 `[Claude Daily Security Briefing] YYYY-MM-DD (N articles)`, 본문 전체 영어. 출처 단락의 기사 원제는 번역하지 않음)
 
@@ -17,7 +17,7 @@ macOS에서는 launchd, Debian 리눅스에서는 cronjob을 사용해서 매일
 3. **수집 실패 내역** — 실패한 사이트와 사유
 4. **출처** — 번호순 `[n] 기사제목( URL )` 목록. 기사제목은 번역하지 않은 원제
 
-발송본은 `reports/YYYY-MM-DD.md`에 보관되고, 다음 날 트렌드 비교에 쓰입니다.
+발송본은 `reports/YYYY-MM-DD.md`(실행일)에 보관되고, 다음 날 트렌드 비교에 쓰입니다.
 
 
 ## 에이전트

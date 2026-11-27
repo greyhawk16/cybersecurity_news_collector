@@ -4,7 +4,7 @@ description: 전날 보안 뉴스를 수집·요약해 이메일로 발송
 
 너는 **조정자**다. CLAUDE.md의 규칙을 지키며 아래 단계를 순서대로 수행하라. 사용자에게 질문하지 마라.
 수집·요약·검사·번역은 직접 하지 말고 서브에이전트(collector, summarizer, qa, translator)에게 맡긴다. 너는 작업 배분, QA 결과 중계, 메일 발송만 한다.
-기사 본문이나 articles.json 내용을 직접 읽지 않는다. 서브에이전트에게는 TARGET 날짜, 파일 경로, 그 에이전트 담당 issues만 전달한다.
+기사 본문이나 articles.json 내용을 직접 읽지 않는다. 서브에이전트에게는 TARGET·SEND_DATE 날짜, 파일 경로, 그 에이전트 담당 issues만 전달한다.
 
 1~3단계는 반드시 단독으로 순서대로 실행하고, 2단계 결과를 확인하기 전에는 3단계 이후의 어떤 도구도 호출하지 마라(병렬 실행 금지).
 Bash 명령은 아래에 적힌 문자열 그대로 실행하라(앞에 `bash`, `cd`, 절대경로 등을 붙이지 말 것 — 권한 규칙과 정확히 일치해야 한다).
@@ -13,30 +13,30 @@ Bash 명령은 아래에 적힌 문자열 그대로 실행하라(앞에 `bash`, 
 
 1. **OS·날짜 확정**: 먼저 `uname -s`를 실행한다. 결과가 `Darwin`이면 OS_DIR=`macos`, `Linux`이면 OS_DIR=`debian`이다.
    그다음 어제 날짜(TARGET)를 구한다 — macos: `date -v-1d +%F`, debian: `date -d yesterday +%F`.
-   이어서 `date +%F`(OS 공통)로 오늘 날짜를 구해 SEND_DATE로 쓴다. SEND_DATE는 **메일 제목의 날짜**에만 쓰이고, 수집 기준·파일 경로·본문 헤더는 TARGET이다.
-   summarizer·qa·translator에게 보내는 **모든 프롬프트(재요청 포함)**는 `TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD.`로 시작한다(아래 예시의 `TARGET=YYYY-MM-DD.`도 이 형식으로 바꿔 쓴다).
-2. **중복 확인**: `reports/TARGET.md`가 있고 첫 줄이 `status: sent`이면 `SKIP target=YYYY-MM-DD reason=already_sent` 한 줄만 출력하고 종료한다. 이 경우 3단계 이후는 실행하지 않는다.
+   이어서 `date +%F`(OS 공통)로 오늘 날짜를 구해 SEND_DATE로 쓴다. **TARGET은 기사 게시일(수집 기준)로만 쓰고, 그 외 모든 날짜(work/·reports/ 파일 경로, 리포트 제목, 메일 제목·본문 헤더, 중복 확인)는 SEND_DATE다.**
+   collector·summarizer·qa·translator에게 보내는 **모든 프롬프트(재요청 포함)**는 `TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD.`로 시작한다(아래 예시의 `TARGET=YYYY-MM-DD.`도 이 형식으로 바꿔 쓴다).
+2. **중복 확인**: `reports/SEND_DATE.md`가 있고 첫 줄이 `status: sent`이면 `SKIP target=YYYY-MM-DD reason=already_sent` 한 줄만 출력하고 종료한다. 이 경우 3단계 이후는 실행하지 않는다.
 3. **수신 주소**: macos면 `scripts/macos/get_recipient.sh`, debian이면 `scripts/debian/get_recipient.sh`를 실행해 출력값을 RECIPIENT로 쓴다. `.env`를 직접 열지 않는다. 실패하면 4~7단계는 그대로 진행하되 8단계에서 발송하지 않고 `status: send_failed`로 기록한다.
    3-1. **번역 여부**: macos면 `scripts/macos/get_translate_flag.sh`, debian이면 `scripts/debian/get_translate_flag.sh`를 실행해 출력값(`True`/`False`)을 TRANSLATE로 쓴다. 실행이 실패하거나 다른 값이면 `False`로 본다.
-4. **수집**: Agent 도구로 `collector`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD. 수집해 work/TARGET/articles.json에 저장하라."
-5. **요약**: `summarizer`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. work/TARGET/articles.json으로 리포트·메일 HTML·메타를 만들어라."
-6. **QA**: `qa`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. 결과물을 검사하라." 반환된 JSON을 그대로 `work/TARGET/qa-round{R}.json`에 Write로 저장한다(R=1부터).
+4. **수집**: Agent 도구로 `collector`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. 수집해 work/SEND_DATE/articles.json에 저장하라."
+5. **요약**: `summarizer`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. work/SEND_DATE/articles.json으로 리포트·메일 HTML·메타를 만들어라."
+6. **QA**: `qa`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. 결과물을 검사하라." 반환된 JSON을 그대로 `work/SEND_DATE/qa-round{R}.json`에 Write로 저장한다(R=1부터).
 7. **문제 중계** (`pass: false`일 때, 최대 2회 왕복):
    - issues 중 owner가 collector/summarizer가 아니거나 필드가 빠진 항목은 버리고 기록해 둔다(나중에 메모로).
    - item·problem을 보고 owner가 명백히 틀렸으면(예: 날짜 문제가 summarizer로 지정됨) 바로잡는다. 그 외에는 QA 판단을 따른다.
    - issues를 owner별로 나눠 **해당 에이전트에게만** 재요청한다. issue 내용은 바꿔 쓰지 말고 JSON 그대로 붙인다:
-     "TARGET=YYYY-MM-DD. 아래 QA issues만 고쳐라: <해당 owner의 issues JSON>"
+     "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. 아래 QA issues만 고쳐라: <해당 owner의 issues JSON>"
    - collector를 다시 호출했다면 summarizer도 이어서 호출해 바뀐 articles.json을 반영하게 한다("articles.json이 갱신됐다. 리포트·메일·메타를 다시 맞춰라").
    - 그다음 qa를 다시 호출하고(R+1) 결과를 저장한다. owner가 없는 에이전트는 호출하지 않는다.
-   - 2회 왕복 후에도 `pass: false`이면 summarizer에게 마지막으로 한 번: "TARGET=YYYY-MM-DD. 아래 issues에 걸린 기사는 제외하고, 기사 외 문제는 메모에 기록하라: <남은 issues JSON>". 이후 QA 없이 8단계로 간다.
+   - 2회 왕복 후에도 `pass: false`이면 summarizer에게 마지막으로 한 번: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. 아래 issues에 걸린 기사는 제외하고, 기사 외 문제는 메모에 기록하라: <남은 issues JSON>". 이후 QA 없이 8단계로 간다.
    - 버린 issue가 있으면 이 마지막 요청(또는 별도 요청)에 함께 넘겨 메모에 기록하게 한다.
    7-1. **영어 번역** (TRANSLATE=`True`일 때만. `False`면 이 단계를 통째로 건너뛴다):
-   - `translator`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. work/TARGET/email.html과 meta.json을 영어로 번역해 email.en.html과 meta.en.json을 만들어라."
-   - `qa`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. MODE=translation. 번역 결과물을 검사하라." 반환 JSON을 `work/TARGET/qa-en-round{E}.json`에 Write로 저장한다(E=1부터).
-   - `pass: false`면 owner가 `translator`인 issues만 JSON 그대로 translator에게 넘긴다: "TARGET=YYYY-MM-DD. 아래 QA issues만 고쳐라: <issues JSON>". 이어서 qa를 다시 호출하고(E+1) 저장한다. 최대 2회 왕복.
-   - 2회 왕복 후에도 `pass: false`이거나 `email.en.html`/`meta.en.json`이 없으면 **번역본을 쓰지 않고 한국어판으로 발송**한다(FALLBACK=yes). summarizer에게 "TARGET=YYYY-MM-DD. 리포트 메모에만 다음을 추가하라: 영어 번역 QA 실패로 한국어판 발송 <남은 issues JSON>"을 요청한다. 발송 자체는 막지 않는다.
-8. **메일 발송**: 발송 파일을 고른다 — TRANSLATE=`True`이고 FALLBACK이 아니면 `work/TARGET/meta.en.json`과 `work/TARGET/email.en.html`, 그 외에는 `work/TARGET/meta.json`과 `work/TARGET/email.html`. 고른 두 파일을 Read한다. `mcp__claude_ai_Gmail__send_message`로 RECIPIENT에게 보낸다(제목=meta.subject, 본문=html 전체, HTML 형식).
-9. **완료 표시**: 발송 성공 시 `reports/TARGET.md` 첫 줄을 `status: sent`로 Edit한다. 실패 시 `status: send_failed`로 바꾸고 리포트 메모에 오류 내용을 남긴다.
+   - `translator`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. work/SEND_DATE/email.html과 meta.json을 영어로 번역해 email.en.html과 meta.en.json을 만들어라."
+   - `qa`를 호출한다. 프롬프트: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. MODE=translation. 번역 결과물을 검사하라." 반환 JSON을 `work/SEND_DATE/qa-en-round{E}.json`에 Write로 저장한다(E=1부터).
+   - `pass: false`면 owner가 `translator`인 issues만 JSON 그대로 translator에게 넘긴다: "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. 아래 QA issues만 고쳐라: <issues JSON>". 이어서 qa를 다시 호출하고(E+1) 저장한다. 최대 2회 왕복.
+   - 2회 왕복 후에도 `pass: false`이거나 `email.en.html`/`meta.en.json`이 없으면 **번역본을 쓰지 않고 한국어판으로 발송**한다(FALLBACK=yes). summarizer에게 "TARGET=YYYY-MM-DD SEND_DATE=YYYY-MM-DD. 리포트 메모에만 다음을 추가하라: 영어 번역 QA 실패로 한국어판 발송 <남은 issues JSON>"을 요청한다. 발송 자체는 막지 않는다.
+8. **메일 발송**: 발송 파일을 고른다 — TRANSLATE=`True`이고 FALLBACK이 아니면 `work/SEND_DATE/meta.en.json`과 `work/SEND_DATE/email.en.html`, 그 외에는 `work/SEND_DATE/meta.json`과 `work/SEND_DATE/email.html`. 고른 두 파일을 Read한다. `mcp__claude_ai_Gmail__send_message`로 RECIPIENT에게 보낸다(제목=meta.subject, 본문=html 전체, HTML 형식).
+9. **완료 표시**: 발송 성공 시 `reports/SEND_DATE.md` 첫 줄을 `status: sent`로 Edit한다. 실패 시 `status: send_failed`로 바꾸고 리포트 메모에 오류 내용을 남긴다.
 10. 마지막에 아래 형식의 한 줄만 출력한다(영어 ASCII만):
     `RESULT target=YYYY-MM-DD articles=N sent=yes|no failed_sites=none|<domain>,<domain> qa_rounds=R qa_pass=true|false lang=ko|en`
     - `lang`: 실제로 보낸(보내려 한) 메일 언어. TRANSLATE=`True`인데 7-1에서 한국어판으로 대체했다면 `lang=ko translate_fallback=yes`로 쓴다.

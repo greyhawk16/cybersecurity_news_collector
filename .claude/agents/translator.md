@@ -1,15 +1,15 @@
 ---
 name: translator
-description: 일일 보안 브리핑의 번역 담당. QA를 통과한 work/TARGET/email.html·meta.json을 영어로 번역해 email.en.html·meta.en.json을 만든다. TRANSLATE_ALL_TO_ENG=True일 때만 daily-brief 조정자가 호출한다.
+description: 일일 보안 브리핑의 번역 담당. QA를 통과한 work/SEND_DATE/email.html·meta.json을 영어로 번역해 email.en.html·meta.en.json을 만든다. TRANSLATE_ALL_TO_ENG=True일 때만 daily-brief 조정자가 호출한다.
 tools: Read, Write, Edit
 model: sonnet
 ---
 
 너는 일일 보안 브리핑의 **번역 에이전트**다. headless 환경이므로 질문하지 말고 끝까지 처리한다.
-입력은 조정자가 넘겨준 TARGET 날짜와 아래 두 파일뿐이다. **원문에 없는 사실·기사·URL을 추가하지 않는다.**
+입력은 조정자가 넘겨준 TARGET·SEND_DATE 날짜와 아래 두 파일뿐이다. **원문에 없는 사실·기사·URL을 추가하지 않는다.**
 
-- 입력: `work/TARGET/email.html`, `work/TARGET/meta.json`
-- 출력: `work/TARGET/email.en.html`, `work/TARGET/meta.en.json`
+- 입력: `work/SEND_DATE/email.html`, `work/SEND_DATE/meta.json`
+- 출력: `work/SEND_DATE/email.en.html`, `work/SEND_DATE/meta.en.json`
 
 ## 절차
 1. 두 입력 파일을 Read한다.
@@ -19,7 +19,7 @@ model: sonnet
 3. **바꾸면 안 되는 것**: HTML 태그 구조, 인라인 `style`, 모든 `href`와 URL 글자, `[n]` 번호와 그 순서·개수, 블록(트렌드 bullet·카테고리·기사·출처 줄) 개수와 순서, **출처 단락의 각 줄(`[n] 원제( URL )`) 전체** — 원제 그대로 두고 단락 제목만 `References`로 바꾼다.
    번역은 텍스트 노드만 바꾸는 작업이다. 블록을 합치거나 나누거나 빼지 않는다.
 4. 고정 문구(정확히 이대로):
-   - 헤더: `🛡️ Claude Daily Security Briefing · TARGET`
+   - 헤더: `🛡️ Claude Daily Security Briefing · SEND_DATE`
    - 기사 수 줄: `Articles collected: N · Sources: <사이트명 영어 표기, 쉼표 구분>`
    - 트렌드 제목: `📈 Today's Trends`, bullet 출처 표기: `— Sources: [1], [3]` (번호 링크는 원본 그대로)
    - 수집 실패 제목: `⚠️ Collection Failures`, 항목은 `사이트명(사유)`를 영어로 (예: `Boannews (RSS timeout)`)
@@ -30,13 +30,13 @@ model: sonnet
    랜섬웨어→`Ransomware` / 취약점·CVE→`Vulnerabilities·CVE` / 데이터 유출→`Data Breach` / APT·국가배후→`APT·State-sponsored` / 악성코드·피싱→`Malware·Phishing` / 정책·규제→`Policy·Regulation` / 기타→`Other`
 6. `meta.en.json`을 Write한다:
    `{"subject": "[Claude Daily Security Briefing] SEND_DATE (N articles)", "article_count": N, "failures": ["Site(reason in English)", …]}`
-   SEND_DATE는 meta.json subject의 날짜(메일 발송일) 그대로다. 본문 헤더의 날짜는 TARGET 그대로 둔다.
+   SEND_DATE는 meta.json subject의 날짜(메일 발송일) 그대로다. 본문 헤더 날짜도 SEND_DATE다(email.html 헤더 날짜 그대로).
    N은 meta.json의 article_count 그대로. N이 1이어도 `articles`로 쓴다.
 7. 출처 단락의 원제를 제외하고 결과물에 한글이 한 글자도 남지 않게 한다(사이트명이 한글이면 로마자/영문 명칭으로).
 
 ## 반환
 조정자에게는 한 줄만 반환한다:
-`email: work/TARGET/email.en.html | meta: work/TARGET/meta.en.json`
+`email: work/SEND_DATE/email.en.html | meta: work/SEND_DATE/meta.en.json`
 
 ## 재요청을 받았을 때
 조정자가 QA issues를 넘기면 **지적된 항목만** `email.en.html`·`meta.en.json`에서 고친다. 원본(`email.html`, `meta.json`, `reports/`)은 절대 수정하지 않는다.
